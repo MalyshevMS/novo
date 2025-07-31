@@ -8,9 +8,9 @@
 namespace Novo {
     class Window {
     private:
-        GLFWwindow* win = nullptr;
-        glm::vec2 size;
-        std::string title;
+        GLFWwindow* _win = nullptr;
+        glm::vec2 _size;
+        std::string _title;
     public:
         Window(const std::string& title, glm::vec2 size) {
             if (!glfwInit()) { // Check for GLFW
@@ -22,19 +22,20 @@ namespace Novo {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
             glfwWindowHint(GLFW_MAXIMIZED, 0);
 
-            win = glfwCreateWindow(size.x, size.y, title.c_str(), nullptr, nullptr);
-            this->size = size;
-            this->title = title;
+            _win = glfwCreateWindow(size.x, size.y, title.c_str(), nullptr, nullptr);
+            _size = size;
+            _title = title;
 
-            if (!win) { // Check for GLFW window
+            if (!_win) { // Check for GLFW window
                 std::cerr << "Window creation failed!" << std::endl;
                 glfwTerminate();
                 return;
             }
 
-            glfwMakeContextCurrent(win);
+            glfwMakeContextCurrent(_win);
 
             if (!gladLoadGL()) { // Check for GLAD
                 std::cerr << "Can't load GLAD!" << std::endl;
@@ -43,23 +44,23 @@ namespace Novo {
         }
 
         bool shouldClose() {
-            if (win) {
-                return glfwWindowShouldClose(win);
+            if (_win) {
+                return glfwWindowShouldClose(_win);
             } else {
                 return true;
             }
         }
 
         void update() {
-            if (win) {
-                glfwSwapBuffers(win);
+            if (_win) {
+                glfwSwapBuffers(_win);
                 glfwPollEvents();
             }
         }
 
         void close() {
-            if (win) {
-                glfwDestroyWindow(win);
+            if (_win) {
+                glfwDestroyWindow(_win);
                 glfwTerminate();
             }
         }
