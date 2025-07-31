@@ -1,5 +1,6 @@
 #include <novo-core/Window.hpp>
 #include <novo-core/Shader.hpp>
+#include <novo-core/VBO.hpp>
 
 int main(int argc, char const *argv[]) {
     Novo::Window window = Novo::Window("Hello World", {800, 600});
@@ -41,25 +42,18 @@ int main(int argc, char const *argv[]) {
     shader.addShader(fragment_shader, GL_FRAGMENT_SHADER);
     shader.link();
 
-    GLuint points_vbo = 0;
-    glGenBuffers(1, &points_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-
-    GLuint color_vbo = 0;
-    glGenBuffers(1, &color_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, color_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
+    Novo::VBO points_vbo = Novo::VBO(points, sizeof(points), Novo::VBO::Mode::STATIC);
+    Novo::VBO color_vbo  = Novo::VBO(color,   sizeof(color), Novo::VBO::Mode::STATIC);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
+    points_vbo.bind();
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     
     glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, color_vbo);
+    color_vbo.bind();
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     glViewport(0, 0, 800, 600);
