@@ -1,6 +1,7 @@
 #include <novo-core/Window.hpp>
 #include <novo-core/Shader.hpp>
 #include <novo-core/VBO.hpp>
+#include <novo-core/VAO.hpp>
 
 int main(int argc, char const *argv[]) {
     Novo::Window window = Novo::Window("Hello World", {800, 600});
@@ -35,34 +36,28 @@ int main(int argc, char const *argv[]) {
         "    frag_color = vec4(color, 1.0);"
         "}";
 
-    GLuint vao;
-
+        
     Novo::Shader shader;
     shader.addShader(vertex_shader, GL_VERTEX_SHADER);
     shader.addShader(fragment_shader, GL_FRAGMENT_SHADER);
     shader.link();
-
+    
     Novo::VBO points_vbo = Novo::VBO(points, sizeof(points), Novo::VBO::Mode::STATIC);
     Novo::VBO color_vbo  = Novo::VBO(color,   sizeof(color), Novo::VBO::Mode::STATIC);
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+        
+    Novo::VAO vao;
     
-    glEnableVertexAttribArray(0);
-    points_vbo.bind();
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    
-    glEnableVertexAttribArray(1);
-    color_vbo.bind();
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    vao.addVBO(points_vbo);
+    vao.addVBO(color_vbo);
 
     glViewport(0, 0, 800, 600);
 
     while (!window.shouldClose()) {
         window.update();
         glClear(GL_COLOR_BUFFER_BIT);
+
         shader.load();
-        glBindVertexArray(vao);
+        vao.bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
         shader.unload();
     }
