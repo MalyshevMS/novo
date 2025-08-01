@@ -29,11 +29,18 @@ namespace Novo {
             bind();
             vbo.bind();
 
-            // TODO: use buffer layout
-            glEnableVertexAttribArray(_elCount);
-            glVertexAttribPointer(_elCount, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-            ++_elCount;
+            for (auto& element : vbo.get_layout().get_elements()) {
+                glVertexAttribPointer(
+                    _elCount,
+                    element.components_count,
+                    element.component_type,
+                    GL_FALSE,
+                    vbo.get_layout().get_stride(),
+                    reinterpret_cast<void*>(element.offset)
+                );
+                glEnableVertexAttribArray(_elCount);
+                ++_elCount;
+            }
         }
     };
 }
