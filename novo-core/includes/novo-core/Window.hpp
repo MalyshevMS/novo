@@ -64,5 +64,13 @@ namespace Novo {
                 glfwTerminate();
             }
         }
+
+        bool isKeyPressed(int key) {
+            if (_win) {
+                return glfwGetKey(_win, key) == GLFW_PRESS;
+            } else {
+                return false;
+            }
+        }
     };
 }
