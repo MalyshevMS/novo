@@ -6,10 +6,17 @@ project(${CORE_PROJECT_NAME})
 
 add_library(${CORE_PROJECT_NAME} STATIC 
     includes/novo-core/Window.hpp
+    includes/novo-core/Shader.hpp
+    includes/novo-core/VAO.hpp
+    includes/novo-core/VBO.hpp
+
+    precompile/novo-precompiles/DefaultShader.h
 )
 
 
 target_include_directories(${CORE_PROJECT_NAME} PUBLIC includes)
+
+target_include_directories(${CORE_PROJECT_NAME} PUBLIC precompile)
 
 
 add_subdirectory(../external/glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
