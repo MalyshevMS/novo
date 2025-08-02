@@ -112,7 +112,7 @@ namespace Novo {
             STREAM
         };
 
-        private: static GLenum modeToGL(Mode mode) {
+        static GLenum modeToGL(Mode mode) {
             switch (mode) {
                 case Mode::STATIC:
                     return GL_STATIC_DRAW;

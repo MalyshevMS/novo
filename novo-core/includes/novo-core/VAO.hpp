@@ -2,12 +2,14 @@
 
 #include <glad/glad.h>
 #include <novo-core/VBO.hpp>
+#include <novo-core/IBO.hpp>
 
 namespace Novo {
     class VAO {
     private:
         GLuint _id;
         GLuint _elCount = 0;
+        GLuint _indCount = 0;
     public:
         VAO() {
             glGenVertexArrays(1, &_id);
@@ -41,6 +43,18 @@ namespace Novo {
                 glEnableVertexAttribArray(_elCount);
                 ++_elCount;
             }
+        }
+
+        void setIBO(IBO& ibo) {
+            bind();
+            ibo.bind();
+            _indCount = ibo.get_count();
+
+            
+        }
+        
+        size_t getIndCount() const {
+            return _indCount;
         }
     };
 }

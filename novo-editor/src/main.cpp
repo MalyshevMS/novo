@@ -2,7 +2,10 @@
 #include <novo-core/Shader.hpp>
 #include <novo-core/VBO.hpp>
 #include <novo-core/VAO.hpp>
+#include <novo-core/IBO.hpp>
+
 #include <novo-precompiles/DefaultShader.h>
+
 #include <chrono>
 #include <thread>
 
@@ -11,9 +14,14 @@ int main(int argc, char const *argv[]) {
     window.setFullscreen(true);
 
     GLfloat pos_col[] = {
-         0.0,  0.5, 0.0,        1.0, 1.0, 0.0,
+        -0.5, -0.5, 0.0,        1.0, 1.0, 0.0,
          0.5, -0.5, 0.0,        0.0, 1.0, 1.0,
-        -0.5, -0.5, 0.0,        1.0, 0.0, 1.0
+        -0.5,  0.5, 0.0,        1.0, 0.0, 1.0,
+         0.5,  0.5, 0.0,        1.0, 0.0, 0.0,
+    };
+
+    GLuint indices[] = {
+        0, 1, 2, 3, 2, 1
     };
         
     Novo::Shader shader;
@@ -28,10 +36,13 @@ int main(int argc, char const *argv[]) {
     };
     
     Novo::VBO pos_col_vbo = Novo::VBO(pos_col, sizeof(pos_col), layout_2vec3f);
+
+    Novo::IBO ibo = Novo::IBO(indices, sizeof(indices) / sizeof(GLuint));
         
     Novo::VAO vao;
     
     vao.addVBO(pos_col_vbo);
+    vao.setIBO(ibo);
 
     while (!window.shouldClose()) {
         window.update();
@@ -49,7 +60,7 @@ int main(int argc, char const *argv[]) {
         shader.load(); // Render zone
 
         vao.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, vao.getIndCount(), GL_UNSIGNED_INT, nullptr);
 
         shader.unload();
     }
