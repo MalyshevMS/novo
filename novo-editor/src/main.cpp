@@ -6,12 +6,16 @@
 
 #include <novo-precompiles/DefaultShader.h>
 
+#include "Debugger.hpp"
+
 #include <chrono>
 #include <thread>
 
 int main(int argc, char const *argv[]) {
     Novo::Window window = Novo::Window("Hello World", {800, 600});
     window.setFullscreen(true);
+
+    Debugger dbg = Debugger(window);
 
     GLfloat pos_col[] = {
         -0.5, -0.5, 0.0,        1.0, 1.0, 0.0,
@@ -23,6 +27,8 @@ int main(int argc, char const *argv[]) {
     GLuint indices[] = {
         0, 1, 2, 3, 2, 1
     };
+
+    glm::vec4 bg_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         
     Novo::Shader shader;
     shader.addShader(vertex_shader, GL_VERTEX_SHADER);
@@ -44,9 +50,18 @@ int main(int argc, char const *argv[]) {
     vao.addVBO(pos_col_vbo);
     vao.setIBO(ibo);
 
+    
     while (!window.shouldClose()) {
         window.update();
+        glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
         glClear(GL_COLOR_BUFFER_BIT);
+        dbg.frame_start();
+
+        ImGui::Begin("Background Color");
+        ImGui::ColorEdit3("Color", glm::value_ptr(bg_color));
+        ImGui::End();
+
+        dbg.frame_end();
 
         if (window.isKeyPressed(GLFW_KEY_F11)) {
             window.setFullscreen(!window.isFullscreen());

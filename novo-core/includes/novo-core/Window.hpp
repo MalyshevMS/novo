@@ -125,5 +125,9 @@ namespace Novo {
         bool isFullscreen() const {
             return _fullscreen;
         }
+
+        GLFWwindow* getHandle() {
+            return _win;
+        }
     };
 }
