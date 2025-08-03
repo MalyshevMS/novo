@@ -5,9 +5,10 @@ extern "C" {
         "layout(location = 1) in vec3 vertex_color;"
         "out vec3 color;"
         "uniform mat4 model;"
+        "uniform mat4 view_projection;"
         "void main() {"
         "    color = vertex_color;"
-        "    gl_Position = model * vec4(vertex_positon, 1.0);"
+        "    gl_Position =  view_projection * model * vec4(vertex_positon, 1.0);"
         "}";
 
     const char* fragment_shader = 

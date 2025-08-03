@@ -4,6 +4,8 @@
 #include <novo-core/VAO.hpp>
 #include <novo-core/IBO.hpp>
 
+#include <novo-core/Camera.hpp>
+
 #include <novo-precompiles/DefaultShader.h>
 
 #include "Debugger.hpp"
@@ -32,8 +34,14 @@ int main(int argc, char const *argv[]) {
     float rotation = 0.f;
     glm::vec3 translate = glm::vec3(0.f, 0.f, 0.f);
 
+    glm::vec3 camera_pos = glm::vec3(0.f, 0.f, 1.f);
+    glm::vec3 camera_rot = glm::vec3(0.f, 0.f, 0.f);
+    bool perspective = true;
+
     glm::vec4 bg_color = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
     glm::mat4 model = glm::mat4(1.f);
+
+    Novo::Camera camera;
         
     Novo::Shader shader;
     shader.addShader(vertex_shader, GL_VERTEX_SHADER);
@@ -69,32 +77,18 @@ int main(int argc, char const *argv[]) {
 
         shader.load(); // Render zone
 
-        glm::mat4 scale_mat = glm::mat4(
-            scale.x, 0.f,       0.f,       0.f,
-            0.f,     scale.y,   0.f,       0.f,
-            0.f,     0.f,       scale.z,   0.f,
-            0.f,     0.f,       0.f,       1.f
-        );
-
+        glm::mat4 scale_mat = glm::scale(glm::mat4(1.f), scale);
         float rotation_rad = glm::radians(rotation);
+        glm::mat4 rotate_mat = glm::rotate(glm::mat4(1.f), rotation_rad, glm::vec3(0.f, 0.f, 1.f));
+        glm::mat4 translate_mat = glm::translate(glm::mat4(1.f), translate);
 
-        glm::mat4 rotate_mat = glm::mat4(
-            cos(rotation_rad),  sin(rotation_rad), 0.f, 0.f,
-            -sin(rotation_rad), cos(rotation_rad), 0.f, 0.f,
-            0.f,                0.f,               1.f, 0.f,
-            0.f,                0.f,               0.f, 1.f
-        );
-
-        glm::mat4 translate_mat = glm::mat4(
-            1,           0,           0,           0,
-            0,           1,           0,           0,
-            0,           0,           1,           0,
-            translate.x, translate.y, translate.z, 1
-        );
+        camera.set_position_rotation(camera_pos, camera_rot);
+        camera.set_projection_mode(perspective ? Novo::Camera::CameraType::Perspective : Novo::Camera::CameraType::Orthographic);
 
         model = translate_mat * rotate_mat * scale_mat;
 
         shader.setUniform("model", model);
+        shader.setUniform("view_projection", camera.get_view_proj_matrix());
 
         vao.bind();
         glDrawElements(GL_TRIANGLES, vao.getIndCount(), GL_UNSIGNED_INT, nullptr);
@@ -106,13 +100,19 @@ int main(int argc, char const *argv[]) {
         ImGui::Begin("Debugger");
         ImGui::ColorEdit3("Background Color", glm::value_ptr(bg_color));
 
-        ImGui::DragFloat3("Translation", glm::value_ptr(translate), 0.01f, -1.f, 1.f);
-        ImGui::DragFloat("Rotation", &rotation, 0.1f, 0.f, 360.f);
-        ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.01f, 0.f, 2.f);
+        ImGui::SliderFloat3("Translation", glm::value_ptr(translate), -1.f, 1.f);
+        ImGui::SliderFloat("Rotation", &rotation, 0.f, 360.f);
+        ImGui::SliderFloat3("Scale", glm::value_ptr(scale), 0.f, 2.f);
         if (ImGui::Button("Exit")) {
             window.close();
             return 0;
         }
+        ImGui::End();
+
+        ImGui::Begin("Camera");
+        ImGui::SliderFloat3("Position", glm::value_ptr(camera_pos), -10.f, 10.f);
+        ImGui::SliderFloat3("Rotation", glm::value_ptr(camera_rot), -180.f, 180.f);
+        ImGui::Checkbox("Perspective", &perspective);
         ImGui::End();
 
         dbg.frame_end();
