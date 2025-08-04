@@ -47,12 +47,15 @@ int main(int argc, char const *argv[]) {
 
     glm::vec3 camera_pos = glm::vec3(0.f, 0.f, 1.f);
     glm::vec3 camera_rot = glm::vec3(0.f, 0.f, 0.f);
+    float camera_fov = 90.f;
     bool perspective = true;
+
+    bool debug = false;
 
     glm::vec4 bg_color = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
     glm::mat4 model = glm::mat4(1.f);
 
-    Novo::Camera camera;
+    Novo::Camera camera = Novo::Camera(camera_pos, camera_rot, Novo::Camera::CameraType::Perspective, 90, window.getSize().x / window.getSize().y);
         
     Novo::Shader shader;
     shader.addShader(vertex_shader, GL_VERTEX_SHADER);
@@ -167,6 +170,7 @@ int main(int argc, char const *argv[]) {
 
         camera.set_position_rotation(camera_pos, camera_rot);
         camera.set_projection_mode(perspective ? Novo::Camera::CameraType::Perspective : Novo::Camera::CameraType::Orthographic);
+        camera.set_fov(camera_fov);
 
         model = translate_mat * rotate_mat * scale_mat;
 
@@ -174,7 +178,7 @@ int main(int argc, char const *argv[]) {
         shader.setUniform("view_projection", camera.get_view_proj_matrix());
 
         vao.bind();
-        glDrawElements(GL_TRIANGLES, vao.getIndCount(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(debug ? GL_LINES : GL_TRIANGLES, vao.getIndCount(), GL_UNSIGNED_INT, nullptr);
 
         shader.unload(); // Render zone end
 
@@ -186,6 +190,7 @@ int main(int argc, char const *argv[]) {
         ImGui::SliderFloat3("Translation", glm::value_ptr(translate), -1.f, 1.f);
         ImGui::SliderFloat("Rotation", &rotation, 0.f, 360.f);
         ImGui::SliderFloat3("Scale", glm::value_ptr(scale), 0.f, 2.f);
+        ImGui::Checkbox("Debug", &debug);
         if (ImGui::Button("Exit")) {
             window.close();
             return 0;
@@ -196,6 +201,7 @@ int main(int argc, char const *argv[]) {
         ImGui::Begin("Camera");
         ImGui::SliderFloat3("Position", glm::value_ptr(camera_pos), -10.f, 10.f);
         ImGui::SliderFloat3("Rotation", glm::value_ptr(camera_rot), -180.f, 180.f);
+        ImGui::SliderFloat("FOV", &camera_fov, 1.f, 179.f);
         ImGui::Checkbox("Perspective", &perspective);
         if (ImGui::Button("Reset")) {
             camera_pos = glm::vec3(0.f, 0.f, 1.f);

@@ -12,6 +12,10 @@ namespace Novo {
         glm::vec3 _rotation;
         glm::mat4 _view_matrix;
         glm::mat4 _proj_matrix;
+        float _fov;
+        float _aspect_ratio;
+        float _near = 0.f;
+        float _far = 100.f;
 
         void update_view_matrix() {
             glm::mat4 translate_mat = glm::translate(glm::mat4(1.f), -_position);
@@ -30,27 +34,10 @@ namespace Novo {
 
         void update_proj_matrix(const CameraType proj_mode) {
             if (proj_mode == CameraType::Perspective) {
-                float r = 0.1f;
-                float t = 0.1f;
-                float f = 10.f;
-                float n = 0.1f;
-                _proj_matrix = glm::mat4(
-                    n / r, 0.f, 0.f, 0.f,
-                    0.f, n / t, 0.f, 0.f,
-                    0.f, 0.f, -(f + n) / (f - n), -1.f,
-                    0.f, 0.f, -(2.f * f * n) / (f - n), 0.f
-                );
+                _proj_matrix = glm::perspective(glm::radians(_fov), _aspect_ratio, _near, _far);
             } else {
-                float r = 2;
-                float t = 2;
-                float f = 100;
-                float n = 0.1f;
-                _proj_matrix = glm::mat4(
-                    1 / r, 0.f, 0.f, 0.f,
-                    0.f, 1 / t, 0.f, 0.f,
-                    0.f, 0.f, -2 / (f - n), 0.f,
-                    0.f, 0.f, -(f + n) / (f - n), 1.f
-                );
+                _proj_matrix = glm::ortho(-_aspect_ratio * _near, _aspect_ratio * _near,
+                                            -_near, _near, _near, _far);
             }
         }
     public:
@@ -61,10 +48,14 @@ namespace Novo {
 
         Camera(const glm::vec3& position = {0, 0, 0},
                const glm::vec3& rotation = {0, 0, 0},
-               const CameraType proj_mode = CameraType::Perspective)
+               const CameraType proj_mode = CameraType::Perspective,
+               const float& fov = 45.f,
+               const float& aspect_ratio = 16.f / 9.f)
                : _position(position),
                  _rotation(rotation),
-                 _type(proj_mode) {
+                 _type(proj_mode),
+                 _aspect_ratio(aspect_ratio),
+                 _fov(fov) {
             update_view_matrix();
             update_proj_matrix(proj_mode);
         }
@@ -100,6 +91,11 @@ namespace Novo {
 
         glm::mat4 get_view_proj_matrix() const {
             return _proj_matrix * _view_matrix;
+        }
+
+        void set_fov(const float fov) {
+            _fov = fov;
+            update_proj_matrix(_type);
         }
     };
 }
