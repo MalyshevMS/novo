@@ -1,0 +1,21 @@
+#pragma once
+
+#include <novo-core/Window.hpp>
+#include <novo-core/Shader.hpp>
+#include <novo-core/VBO.hpp>
+#include <novo-core/VAO.hpp>
+#include <novo-core/IBO.hpp>
+
+#include <novo-core/Camera.hpp>
+
+#include <novo-precompiles/DefaultShader.h>
+
+namespace Novo {
+    class Application {
+    private:
+    public:
+        virtual void init() {}
+        virtual void on_update() {}
+        virtual void key_pressed() {}
+    };
+};

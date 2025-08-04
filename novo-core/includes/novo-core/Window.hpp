@@ -13,6 +13,10 @@ namespace Novo {
         std::string _title;
         bool _fullscreen = false;
 
+        double _dt = 0.0f;
+        double _lastTime = 0.0f;
+        double _currentTime = 0.0f;
+
         std::function<void(Window&, glm::vec2)> _size_callback = [](Window&, glm::vec2){};
         std::function<void(Window&, int)>       _key_callback  = [](Window&, int){};
 
@@ -78,6 +82,10 @@ namespace Novo {
             if (_win) {
                 glfwSwapBuffers(_win);
                 glfwPollEvents();
+
+                _currentTime = glfwGetTime();
+                _dt = _currentTime - _lastTime;
+                _lastTime = _currentTime;
             }
         }
 
@@ -128,6 +136,14 @@ namespace Novo {
 
         GLFWwindow* getHandle() {
             return _win;
+        }
+
+        float getAspectRatio() const {
+            return _size.x / _size.y;
+        }
+
+        float getDeltaTime() const {
+            return _dt;
         }
     };
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 extern "C" {
     const char* vertex_shader = 
         "#version 460\n"
