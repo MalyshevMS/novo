@@ -1,6 +1,11 @@
 #include <novo-core/Application.hpp>
-#include <memory>
 #include <novo-precompiles/Layouts.h>
+
+#include "Debugger.hpp"
+
+#include <memory>
+#include <chrono>
+#include <thread>
 
 #define CUBE_COLOR1 1.f, 0.f, 0.f
 #define CUBE_COLOR2 0.f, 1.f, 0.f
@@ -14,6 +19,8 @@ private:
     std::unique_ptr<Novo::VBO> p_vbo = nullptr;
     std::unique_ptr<Novo::IBO> p_ibo = nullptr;
     std::unique_ptr<Novo::Shader> p_shader = nullptr;
+
+    std::unique_ptr<Debugger> p_debugger = nullptr;
 
     glm::mat4 g_model = glm::mat4(1.f);
     glm::vec4 g_bgColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
@@ -42,6 +49,8 @@ private:
         0, 2, 4, 6, 4, 2,
         1, 3, 5, 7, 5, 3
     };
+
+    bool b_debug = false;
 public:
     virtual void init() override {
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1280, 720));
@@ -59,10 +68,12 @@ public:
 
         p_vao->addVBO(*p_vbo);
         p_vao->setIBO(*p_ibo);
+
+        p_debugger = std::make_unique<Debugger>(*p_window);
     }
 
     virtual void on_update() override {
-        while (!p_window->shouldClose()) {
+        while (p_window->isOpen()) {
             p_window->update();
             glClearColor(g_bgColor.r, g_bgColor.g, g_bgColor.b, g_bgColor.a);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -83,7 +94,9 @@ public:
             p_shader->unload();
 
             key_pressed();
+            debug();
         }
+        glfwTerminate();
     }
 
     virtual void key_pressed() override {
@@ -129,6 +142,29 @@ public:
 
         if (p_window->isKeyPressed(GLFW_KEY_DOWN)) {
             c_pos.y -= c_speed * p_window->getDeltaTime();
+        }
+
+        if (p_window->isKeyPressed(GLFW_KEY_G)) {
+            b_debug = !b_debug;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+
+    void debug() {
+        if (b_debug) {
+            p_debugger->frame_start();
+
+            ImGui::Begin("Background");
+            ImGui::ColorEdit3("Background color", glm::value_ptr(g_bgColor));
+            ImGui::End();
+
+            ImGui::Begin("Camera");
+            ImGui::DragFloat3("Position", glm::value_ptr(c_pos), 0.1f);
+            ImGui::DragFloat("Rotation Y", &c_rot.y);
+            ImGui::DragFloat("FOV", &c_fov);
+            ImGui::End();
+
+            p_debugger->frame_end();
         }
     }
 };

@@ -70,12 +70,8 @@ namespace Novo {
             }
         }
 
-        bool shouldClose() {
-            if (_win) {
-                return glfwWindowShouldClose(_win);
-            } else {
-                return true;
-            }
+        bool isOpen() {
+            return !glfwWindowShouldClose(_win);
         }
 
         void update() {
@@ -91,8 +87,7 @@ namespace Novo {
 
         void close() {
             if (_win) {
-                glfwDestroyWindow(_win);
-                glfwTerminate();
+                glfwSetWindowShouldClose(_win, GLFW_TRUE);
             }
         }
 
