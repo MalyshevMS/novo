@@ -13,6 +13,9 @@
 #include <chrono>
 #include <thread>
 
+#define CUBE_COLOR1 1.f, 0.5f, 0.5f
+#define CUBE_COLOR2 0.5f, 1.f, 0.5f
+
 int main(int argc, char const *argv[]) {
     Novo::Window window = Novo::Window("Hello World", {800, 600});
     window.setFullscreen(true);
@@ -20,14 +23,22 @@ int main(int argc, char const *argv[]) {
     Debugger dbg = Debugger(window);
 
     GLfloat pos_col[] = {
-        -0.5, -0.5, 0.0,        1.0, 1.0, 0.0,
-         0.5, -0.5, 0.0,        0.0, 1.0, 1.0,
-        -0.5,  0.5, 0.0,        1.0, 0.0, 1.0,
-         0.5,  0.5, 0.0,        1.0, 0.0, 0.0,
+        -1.f, -1.f, 0.f,        CUBE_COLOR1,
+         1.f, -1.f, 0.f,        CUBE_COLOR2,
+         -1.f,  1.f, 0.f,       CUBE_COLOR1,
+         1.f,  1.f, 0.f,        CUBE_COLOR2,
+
+         -1.f, -1.f, 2.f,       CUBE_COLOR2,
+         1.f, -1.f, 2.f,        CUBE_COLOR1,
+        -1.f,  1.f, 2.f,        CUBE_COLOR2,
+         1.f,  1.f, 2.f,        CUBE_COLOR1,
     };
 
     GLuint indices[] = {
-        0, 1, 2, 3, 2, 1
+        0, 1, 2, 3, 2, 1,
+        4, 5, 6, 7, 6, 5,
+        0, 2, 4, 6, 4, 2,
+        1, 3, 5, 7, 5, 3
     };
 
     glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
@@ -50,7 +61,7 @@ int main(int argc, char const *argv[]) {
 
     Novo::BufferLayout layout_2vec3f {
         Novo::ShaderDataType::Float3,
-        Novo::ShaderDataType::Float3
+        Novo::ShaderDataType::Float3,
     };
     
     Novo::VBO pos_col_vbo = Novo::VBO(pos_col, sizeof(pos_col), layout_2vec3f);
@@ -59,11 +70,23 @@ int main(int argc, char const *argv[]) {
     
     vao.addVBO(pos_col_vbo);
     vao.setIBO(ibo);
+
+    double lastMouseX = 0.0, lastMouseY = 0.0;
+    bool mouseLocked = false;
     
     while (!window.shouldClose()) {
         window.update();
         glClearColor(bg_color.r, bg_color.g, bg_color.b, bg_color.a);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // Camera movement (along -Z axis)
+        float radian_yaw   = glm::radians(camera_rot.y);
+        float radian_pitch = glm::radians(camera_rot.x);
+        glm::vec3 dir = glm::vec3(
+        -sin(radian_yaw) * cos(radian_pitch),
+        sin(radian_pitch),
+        -cos(radian_yaw) * cos(radian_pitch)
+        );
 
         if (window.isKeyPressed(GLFW_KEY_F11)) {
             window.setFullscreen(!window.isFullscreen());
@@ -73,6 +96,66 @@ int main(int argc, char const *argv[]) {
         if (window.isKeyPressed(GLFW_KEY_ESCAPE)) {
             window.close();
             return 0;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_W)) {
+            camera_pos += dir * 0.1f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_S)) {
+            camera_pos -= dir * 0.1f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_A)) {
+            camera_pos -= glm::normalize(glm::cross(dir, glm::vec3(0.f, 1.f, 0.f))) * 0.1f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_D)) {
+            camera_pos += glm::normalize(glm::cross(dir, glm::vec3(0.f, 1.f, 0.f))) * 0.1f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_LEFT)) {
+            camera_rot.y += 1.f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_RIGHT)) {
+            camera_rot.y -= 1.f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_UP)) {
+            camera_pos.y += 0.1f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_DOWN)) {
+            camera_pos.y -= 0.1f;
+        }
+
+        if (window.isKeyPressed(GLFW_KEY_X)) {
+            double mouseX, mouseY;
+            glfwGetCursorPos(window.getHandle(), &mouseX, &mouseY);
+
+            if (!mouseLocked) {
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+                mouseLocked = true;
+            }
+
+            float sensitivity = 0.1f;
+            float deltaX = (mouseX - lastMouseX) * sensitivity;
+            float deltaY = (mouseY - lastMouseY) * sensitivity;
+
+            camera_rot.y += deltaX;
+            camera_rot.x -= deltaY;
+
+            camera_rot.x = glm::clamp(camera_rot.x, -89.0f, 89.0f);
+
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+
+            glfwSetInputMode(window.getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        } else {
+            glfwSetInputMode(window.getHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            mouseLocked = false;
         }
 
         shader.load(); // Render zone
@@ -93,7 +176,7 @@ int main(int argc, char const *argv[]) {
         vao.bind();
         glDrawElements(GL_TRIANGLES, vao.getIndCount(), GL_UNSIGNED_INT, nullptr);
 
-        shader.unload();
+        shader.unload(); // Render zone end
 
         dbg.frame_start();
 
@@ -107,12 +190,23 @@ int main(int argc, char const *argv[]) {
             window.close();
             return 0;
         }
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
 
         ImGui::Begin("Camera");
         ImGui::SliderFloat3("Position", glm::value_ptr(camera_pos), -10.f, 10.f);
         ImGui::SliderFloat3("Rotation", glm::value_ptr(camera_rot), -180.f, 180.f);
         ImGui::Checkbox("Perspective", &perspective);
+        if (ImGui::Button("Reset")) {
+            camera_pos = glm::vec3(0.f, 0.f, 1.f);
+            camera_rot = glm::vec3(0.f, 0.f, 0.f);
+        }
+        if (ImGui::Button("Reset Position")) {
+            camera_pos = glm::vec3(0.f, 0.f, 1.f);
+        }
+        if (ImGui::Button("Reset Rotation")) {
+            camera_rot = glm::vec3(0.f, 0.f, 0.f);
+        }
         ImGui::End();
 
         dbg.frame_end();
