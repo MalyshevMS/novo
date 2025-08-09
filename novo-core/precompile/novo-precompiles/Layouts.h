@@ -76,6 +76,12 @@ namespace Novo {
             ShaderDataType::Int4
         };
 
+        const static BufferLayout l_texture = {
+            ShaderDataType::Float3,
+            ShaderDataType::Float3,
+            ShaderDataType::Float2
+        };
+
         static BufferLayout create(const std::initializer_list<BufferElement>& types) {
             return BufferLayout(std::move(types));
         }

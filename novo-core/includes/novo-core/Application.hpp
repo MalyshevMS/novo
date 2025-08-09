@@ -5,6 +5,7 @@
 #include <novo-core/VBO.hpp>
 #include <novo-core/VAO.hpp>
 #include <novo-core/IBO.hpp>
+#include <novo-core/Texture2D.hpp>
 
 #include <novo-core/Camera.hpp>
 

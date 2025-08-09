@@ -23,6 +23,9 @@ private:
 
     std::unique_ptr<Novo::Shader> p_shader = nullptr;
 
+    std::unique_ptr<Novo::Texture2D> p_texture_smile = nullptr;
+    std::unique_ptr<Novo::Texture2D> p_texture_quads = nullptr;
+
     std::unique_ptr<Debugger> p_debugger = nullptr;
 
     glm::mat4 g_model = glm::mat4(1.f);
@@ -35,11 +38,11 @@ private:
     float c_speed = 10.f;
     float c_sensitivity = 5.f;
 
-    GLfloat pos_col[24] = {
-        0, -1,-1,     COLOR1,
-        0, 1, -1,     COLOR2,
-        0, -1, 1,     COLOR3,
-        0, 1,  1,     COLOR4,
+    GLfloat pos_col[32] = {
+        0, -1,-1,     COLOR1,   -2.f, 2.f,
+        0, 1, -1,     COLOR2,   2.f, 2.f,
+        0, -1, 1,     COLOR3,   -2.f, -2.f,
+        0, 1,  1,     COLOR4,   2.f, -2.f
     };
 
     GLuint indices[6] = {
@@ -48,10 +51,85 @@ private:
     };
 
     bool b_debug = false;
+    bool b_texture = false; // false = smile, true = quad
+
+    GLuint texture_smile;
+    GLuint texture_quads;
+
+    void generate_circle(unsigned char* data,
+                         const unsigned int width,
+                         const unsigned int height,
+                         const unsigned int center_x,
+                         const unsigned int center_y,
+                         const unsigned int radius,
+                         const unsigned char color_r,
+                         const unsigned char color_g,
+                         const unsigned char color_b) {
+        for (unsigned int x = 0; x < width; x++) {
+            for (unsigned int y = 0; y < height; y++) {
+                if ((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y) < radius * radius) {
+                    data[(x + y * width) * 3 + 0] = color_r;
+                    data[(x + y * width) * 3 + 1] = color_g;
+                    data[(x + y * width) * 3 + 2] = color_b;
+                }
+            }
+        }
+    }
+
+    void smile_texture(unsigned char* data, unsigned int width, unsigned int height) {
+        // Background
+        for (unsigned int x = 0; x < width; x++) {
+            for (unsigned int y = 0; y < height; y++) {
+                data[(x + y * width) * 3 + 0] = 200;
+                data[(x + y * width) * 3 + 1] = 191;
+                data[(x + y * width) * 3 + 2] = 231;
+            }
+        }
+
+        // Face
+        generate_circle(data, width, height, width * 0.5, height * 0.5, width * 0.4, 255, 255, 0);
+
+        // Smile
+        generate_circle(data, width, height, width * 0.5, height * 0.4, width * 0.2, 0, 0, 0);
+        generate_circle(data, width, height, width * 0.5, height * 0.45, width * 0.2, 255, 255, 0);
+
+        // Eyes
+        generate_circle(data, width, height, width * 0.35, height * 0.6, width * 0.07, 255, 0, 255);
+        generate_circle(data, width, height, width * 0.65, height * 0.6, width * 0.07, 0, 0, 255);
+    }
+
+    void quad_texture(unsigned char* data, unsigned int width, unsigned int height) {
+        for (unsigned int x = 0; x < width; x++) {
+            for (unsigned int y = 0; y < height; y++) {
+                if ((x < width * 0.5 && y < height * 0.5) || (x > width * 0.5 && y > height * 0.5)) {
+                    data[(x + y * width) * 3 + 0] = 255;
+                    data[(x + y * width) * 3 + 1] = 255;
+                    data[(x + y * width) * 3 + 2] = 255;
+                } else {
+                    data[(x + y * width) * 3 + 0] = 0;
+                    data[(x + y * width) * 3 + 1] = 0;
+                    data[(x + y * width) * 3 + 2] = 0;
+                }
+            }
+        }
+    }
 public:
     virtual void init() override {
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1920, 1080));
         p_window->setMaximized(true);
+        
+        const unsigned int width = 1000;
+        const unsigned int height = 1000;
+        const unsigned int channels = 3;
+        auto* data = new unsigned char[width * height * channels];
+        
+        smile_texture(data, width, height);
+        p_texture_smile = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels);
+        
+        quad_texture(data, width, height);
+        p_texture_quads = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels);
+
+        delete[] data;
 
         p_camera = std::make_unique<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
         p_shader = std::make_unique<Novo::Shader>();
@@ -59,7 +137,7 @@ public:
         p_shader->addShader(fragment_shader, GL_FRAGMENT_SHADER);
         p_shader->link();
 
-        p_vbo = std::make_unique<Novo::VBO>(pos_col, sizeof(pos_col), Novo::Layout::l_2vec3f);
+        p_vbo = std::make_unique<Novo::VBO>(pos_col, sizeof(pos_col), Novo::Layout::l_texture);
         p_ibo = std::make_unique<Novo::IBO>(indices, sizeof(indices) / sizeof(GLuint));
         p_vao = std::make_unique<Novo::VAO>();
 
@@ -76,6 +154,12 @@ public:
             glClear(GL_COLOR_BUFFER_BIT);
 
             p_shader->load();
+
+            if (b_texture) {
+                p_texture_quads->bind();
+            } else {
+                p_texture_smile->bind();
+            }
 
             // Camera matrix
             p_camera->set_fov(c_fov);
@@ -148,6 +232,11 @@ public:
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
+        if (p_window->isKeyPressed(GLFW_KEY_G)) {
+            b_texture = !b_texture;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
         p_camera->move_rotate(movement_delta, rotation_delta);
     }
 
@@ -178,7 +267,7 @@ public:
             ImGui::DragFloat("Speed", &c_speed, 0.01f, 0.f, 10.f, "%.2f");
 
             if (ImGui::Button("Reset Position")) {
-                p_camera->set_position(glm::vec3(0.f, 0.f, 0.f));
+                p_camera->set_position(glm::vec3(-1.f, 0.f, 0.f));
             }
 
             if (ImGui::Button("Reset Rotation")) {
