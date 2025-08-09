@@ -12,7 +12,7 @@
 #define COLOR3 0.f, 0.f, 1.f
 #define COLOR4 1.f, 1.f, 1.f
 
-class Application : public Novo::Application {
+class NovoEditor : public Novo::Application {
 private:
     std::unique_ptr<Novo::Window> p_window = nullptr;
     std::unique_ptr<Novo::Camera> p_camera = nullptr;
@@ -28,12 +28,12 @@ private:
     glm::mat4 g_model = glm::mat4(1.f);
     glm::vec4 g_bgColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
 
-    glm::vec3 c_pos = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 c_pos = glm::vec3(-1.f, 0.f, 0.f);
     glm::vec3 c_rot = glm::vec3(0.f, 0.f, 0.f);
     float c_fov = 90.f;
     bool c_perspective = true;
     float c_speed = 10.f;
-    float c_sensitivity = 3.f;
+    float c_sensitivity = 5.f;
 
     GLfloat pos_col[24] = {
         0, -1,-1,     COLOR1,
@@ -51,6 +51,7 @@ private:
 public:
     virtual void init() override {
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1920, 1080));
+        p_window->setMaximized(true);
 
         p_camera = std::make_unique<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
         p_shader = std::make_unique<Novo::Shader>();
@@ -98,6 +99,7 @@ public:
         glm::vec3 movement_delta = glm::vec3();
         glm::vec3 rotation_delta = glm::vec3();
         float deltaTime = p_window->getDeltaTime();
+        glm::vec2 mouseDelta = p_window->getMouseDelta();
 
         if (p_window->isKeyPressed(GLFW_KEY_ESCAPE)) {
             p_window->close();
@@ -126,32 +128,22 @@ public:
         if (p_window->isKeyPressed(GLFW_KEY_Q)) {
             movement_delta.z -= c_speed * deltaTime;
         }
+        
+        if (p_window->isMousePressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+            p_window->hideCursor();
 
-        if (p_window->isKeyPressed(GLFW_KEY_LEFT)) {
-            rotation_delta.z -= c_sensitivity * 75.f * deltaTime;
+            if (p_window->isMousePressed(GLFW_MOUSE_BUTTON_LEFT)) {
+                movement_delta.y -= mouseDelta.x * (c_speed / 2) * deltaTime;
+                movement_delta.z -= mouseDelta.y * (c_speed / 2) * deltaTime;
+            } else {
+                rotation_delta.y -= mouseDelta.y * c_sensitivity * deltaTime;
+                rotation_delta.z += mouseDelta.x * c_sensitivity * deltaTime;
+            }
+        } else {
+            p_window->showCursor();
         }
 
-        if (p_window->isKeyPressed(GLFW_KEY_RIGHT)) {
-            rotation_delta.z += c_sensitivity * 75.f * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_UP)) {
-            rotation_delta.y += c_sensitivity * 75.f * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_DOWN)) {
-            rotation_delta.y -= c_sensitivity * 75.f * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_P)) {
-            rotation_delta.x -= c_sensitivity * 75.f * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_O)) {
-            rotation_delta.x += c_sensitivity * 75.f * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_G)) {
+        if (p_window->isKeyPressed(GLFW_KEY_TAB)) {
             b_debug = !b_debug;
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -182,6 +174,9 @@ public:
                 p_camera->set_rotation(c_rot);
             }
 
+            ImGui::DragFloat("Sensivity", &c_sensitivity, 0.01f, 0.f, 10.f, "%.2f");
+            ImGui::DragFloat("Speed", &c_speed, 0.01f, 0.f, 10.f, "%.2f");
+
             if (ImGui::Button("Reset Position")) {
                 p_camera->set_position(glm::vec3(0.f, 0.f, 0.f));
             }
@@ -189,6 +184,7 @@ public:
             if (ImGui::Button("Reset Rotation")) {
                 p_camera->set_rotation(glm::vec3(0.f, 0.f, 0.f));
             }
+
             ImGui::End();
 
             p_debugger->frame_end();

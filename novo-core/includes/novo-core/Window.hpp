@@ -17,6 +17,10 @@ namespace Novo {
         double _lastTime = 0.0f;
         double _currentTime = 0.0f;
 
+        glm::vec2 _mouse_pos   = glm::vec2(0.f);
+        glm::vec2 _mouse_last  = glm::vec2(0.f);
+        glm::vec2 _mouse_delta = glm::vec2(0.f);
+
         std::function<void(Window&, glm::vec2)> _size_callback = [](Window&, glm::vec2){};
         std::function<void(Window&, int)>       _key_callback  = [](Window&, int){};
 
@@ -82,6 +86,12 @@ namespace Novo {
                 _currentTime = glfwGetTime();
                 _dt = _currentTime - _lastTime;
                 _lastTime = _currentTime;
+
+                double mouse_x, mouse_y;
+                glfwGetCursorPos(_win, &mouse_x, &mouse_y);
+                _mouse_pos = glm::vec2(mouse_x, mouse_y);
+                _mouse_delta = _mouse_pos - _mouse_last;
+                _mouse_last = _mouse_pos;
             }
         }
 
@@ -94,6 +104,14 @@ namespace Novo {
         bool isKeyPressed(int key) {
             if (_win) {
                 return glfwGetKey(_win, key) == GLFW_PRESS;
+            } else {
+                return false;
+            }
+        }
+
+        bool isMousePressed(int button) {
+            if (_win) {
+                return glfwGetMouseButton(_win, button) == GLFW_PRESS;
             } else {
                 return false;
             }
@@ -124,6 +142,14 @@ namespace Novo {
             }
             _fullscreen = fullscreen;
         }
+        
+        void setMaximized(bool maximized) {
+            if (maximized) {
+                glfwMaximizeWindow(_win);
+            } else {
+                glfwRestoreWindow(_win);
+            }
+        }
 
         bool isFullscreen() const {
             return _fullscreen;
@@ -139,6 +165,26 @@ namespace Novo {
 
         float getDeltaTime() const {
             return _dt;
+        }
+
+        glm::vec2 getMousePos() const {
+            return _mouse_pos;
+        }
+
+        glm::vec2 getMouseDelta() const {
+            return _mouse_delta;
+        }
+
+        void hideCursor() {
+            glfwSetInputMode(_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+
+        void showCursor() {
+            glfwSetInputMode(_win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+
+        void setCursorPos(glm::vec2 pos) {
+            glfwSetCursorPos(_win, pos.x, pos.y);
         }
     };
 }
