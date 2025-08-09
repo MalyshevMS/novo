@@ -56,5 +56,14 @@ namespace Novo {
         size_t getIndCount() const {
             return _indCount;
         }
+
+        void draw(GLenum method = GL_TRIANGLES) {
+            bind();
+            if (_indCount > 0) {
+                glDrawElements(method, _indCount, GL_UNSIGNED_INT, nullptr);
+            } else {
+                glDrawArrays(method, 0, _elCount);
+            }
+        }
     };
 }
