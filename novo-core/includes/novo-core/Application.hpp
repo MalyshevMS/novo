@@ -6,10 +6,8 @@
 #include <novo-core/VAO.hpp>
 #include <novo-core/IBO.hpp>
 #include <novo-core/Texture2D.hpp>
-
 #include <novo-core/Camera.hpp>
-
-#include <novo-precompiles/DefaultShader.h>
+#include <novo-core/Resources.hpp>
 
 namespace Novo {
     class Application {

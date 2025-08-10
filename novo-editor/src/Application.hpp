@@ -7,11 +7,6 @@
 #include <chrono>
 #include <thread>
 
-#define COLOR1 1.f, 0.f, 0.f
-#define COLOR2 0.f, 1.f, 0.f
-#define COLOR3 0.f, 0.f, 1.f
-#define COLOR4 1.f, 1.f, 1.f
-
 class NovoEditor : public Novo::Application {
 private:
     std::unique_ptr<Novo::Window> p_window = nullptr;
@@ -24,7 +19,8 @@ private:
     std::unique_ptr<Novo::Shader> p_shader = nullptr;
 
     std::unique_ptr<Novo::Texture2D> p_texture_smile = nullptr;
-    std::unique_ptr<Novo::Texture2D> p_texture_quads = nullptr;
+    
+    std::unique_ptr<Novo::Resources> p_resources = nullptr;
 
     std::unique_ptr<Debugger> p_debugger = nullptr;
 
@@ -38,15 +34,15 @@ private:
     float c_sensitivity = 5.f;
 
     GLfloat pos_col[20 * 2] = {
-        -1, -1, -1,     1,   0,
-        1, -1, -1,      0,   0,
-        -1, 1, -1,      1,   1,
-        1,  1, -1,      0,   1,
+        -1, -1, -1,     100.f,   0.f,
+        1, -1, -1,      0.f,   0.f,
+        -1, 1, -1,      100.f,   100.f,
+        1,  1, -1,      0.f,   100.f,
 
-        -1, -1, 1,      1,   0,
-        1, -1,  1,      0,   0,
-        -1, 1,  1,      1,   1,
-        1,  1,  1,      0,   1,
+        -1, -1, 1,      100.f,   0.f,
+        1, -1,  1,      0.f,   0.f,
+        -1, 1,  1,      100.f,   100.f,
+        1,  1,  1,      0.f,   100.f,
     };
 
     GLuint indices[6 * 2] = {
@@ -121,7 +117,9 @@ private:
 public:
     virtual void init() override {
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1920, 1080));
-        // p_window->setMaximized(true);
+        p_window->setMaximized(true);
+
+        p_resources = std::make_unique<Novo::Resources>(__argv[0]);
         
         const unsigned int width = 100;
         const unsigned int height = 100;
@@ -129,17 +127,14 @@ public:
         auto* data = new unsigned char[width * height * channels];
         
         smile_texture(data, width, height);
-        p_texture_smile = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels, GL_CLAMP_TO_EDGE, GL_NEAREST);
-        
-        quad_texture(data, width, height);
-        p_texture_quads = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels);
+        p_texture_smile = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels);
 
         delete[] data;
 
         p_camera = std::make_unique<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
         p_shader = std::make_unique<Novo::Shader>();
-        p_shader->addShader(vertex_shader, GL_VERTEX_SHADER);
-        p_shader->addShader(fragment_shader, GL_FRAGMENT_SHADER);
+        p_shader->addShader(p_resources->getFileStr("res/shaders/vertex.glsl"), GL_VERTEX_SHADER);
+        p_shader->addShader(p_resources->getFileStr("res/shaders/fragment.glsl"), GL_FRAGMENT_SHADER);
         p_shader->link();
 
         p_vbo = std::make_unique<Novo::VBO>(pos_col, sizeof(pos_col), Novo::Layout::l_texture);
@@ -150,26 +145,23 @@ public:
         p_vao->setIBO(*p_ibo);
 
         p_debugger = std::make_unique<Debugger>(*p_window);
+
+        p_resources->loadTexture("Texture", "res/textures/texture.png");
     }
 
     virtual void on_update() override {
         while (p_window->isOpen()) {
             p_window->update();
+            glEnable(GL_DEPTH_TEST);
             glClearColor(g_bgColor.r, g_bgColor.g, g_bgColor.b, g_bgColor.a);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             p_shader->load();
 
             if (b_texture) {
-                p_texture_quads->bind();
+               p_resources->getTexture("Texture")->bind();
             } else {
                 p_texture_smile->bind();
-            }
-
-            if (b_depth_test) {
-                glEnable(GL_DEPTH_TEST);
-            } else {
-                glDisable(GL_DEPTH_TEST);
             }
 
             // Camera matrix

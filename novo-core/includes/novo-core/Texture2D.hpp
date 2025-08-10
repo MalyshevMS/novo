@@ -8,7 +8,7 @@ namespace Novo {
     private:
         GLuint _id;
     public:
-        Texture2D(const unsigned char* texture, const glm::vec2& size, const unsigned int channels, const GLenum wrap = GL_REPEAT, const GLenum filter = GL_LINEAR) {
+        Texture2D(const unsigned char* texture, const glm::vec2& size, const unsigned int channels, const GLenum wrap = GL_REPEAT, const GLenum filter = GL_NEAREST) {
             GLenum internalFormat;
             GLenum format;
             switch (channels) {
