@@ -78,7 +78,6 @@ namespace Novo {
 
         const static BufferLayout l_texture = {
             ShaderDataType::Float3,
-            ShaderDataType::Float3,
             ShaderDataType::Float2
         };
 

@@ -38,16 +38,21 @@ private:
     float c_speed = 10.f;
     float c_sensitivity = 5.f;
 
-    GLfloat pos_col[32] = {
-        0, -1,-1,     COLOR1,   -2.f, 2.f,
-        0, 1, -1,     COLOR2,   2.f, 2.f,
-        0, -1, 1,     COLOR3,   -2.f, -2.f,
-        0, 1,  1,     COLOR4,   2.f, -2.f
+    GLfloat pos_col[20 * 2] = {
+        0, -1,-1,       -2.f, 2.f,
+        0, 1, -1,       2.f, 2.f,
+        0, -1, 1,       -2.f, -2.f,
+        0, 1,  1,       2.f, -2.f,
+
+        2, -1,-1,       -2.f, 2.f,
+        2, 1, -1,       2.f, 2.f,
+        2, -1, 1,       -2.f, -2.f,
+        2, 1,  1,       2.f, -2.f
     };
 
-    GLuint indices[6] = {
-        0, 1, 2,
-        3, 1, 2
+    GLuint indices[6 * 2] = {
+        0, 1, 2, 3, 1, 2,
+        4, 5, 6, 7, 5, 6
     };
 
     bool b_debug = false;
