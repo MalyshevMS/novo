@@ -1,7 +1,10 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 namespace Novo {
     class Camera {
@@ -9,37 +12,33 @@ namespace Novo {
     private:
         CameraType _type;
         glm::vec3 _position;
-        glm::vec3 _rotation; // X = roll, Y = pitch, Z = yaw
+        glm::vec3 _rotation; // X = pitch, Y = yaw, Z = roll
 
         glm::vec3 _direction;
         glm::vec3 _right;
         glm::vec3 _up;
 
-        static constexpr glm::vec3 s_up =    {0, 0, 1};
-        static constexpr glm::vec3 s_right = {0, -1, 0};
-        static constexpr glm::vec3 s_forward = {1, 0, 0};
+        static constexpr glm::vec3 s_up =      {0, 1, 0};
+        static constexpr glm::vec3 s_right =   {1, 0, 0};
+        static constexpr glm::vec3 s_forward = {0, 0, 1};
 
         glm::mat4 _view_matrix;
         glm::mat4 _proj_matrix;
         float _fov;
         float _aspect_ratio;
-        float _near = 0.f;
+        float _near = 0.1f;
         float _far = 100.f;
 
         void update_view_matrix() {
-            float roll_rad = glm::radians(_rotation.x);
-            float pitch_rad = glm::radians(_rotation.y);
-            float yaw_rad = glm::radians(_rotation.z);    
+            float pitch_rad = glm::radians(_rotation.x);
+            float yaw_rad = glm::radians(_rotation.y);    
+            float roll_rad = glm::radians(_rotation.z);
 
-            glm::mat4 rotate_mat_x = glm::rotate(glm::mat4(1.f), roll_rad, glm::vec3(1.f, 0.f, 0.f));
-            glm::mat4 rotate_mat_y = glm::rotate(glm::mat4(1.f), pitch_rad, glm::vec3(0.f, 1.f, 0.f));
-            glm::mat4 rotate_mat_z = glm::rotate(glm::mat4(1.f), yaw_rad, glm::vec3(0.f, 0.f, 1.f));
+            glm::mat4 rotation = glm::eulerAngleYXZ(yaw_rad, pitch_rad, roll_rad);
 
-            glm::mat4 euler_rotate_mat = rotate_mat_z * rotate_mat_y * rotate_mat_x;
-
-            _direction = glm::normalize(glm::vec3(euler_rotate_mat * glm::vec4(s_forward, 0.f)));
-            _right = glm::normalize(glm::vec3(euler_rotate_mat * glm::vec4(s_right, 0.f)));
-            _up = glm::normalize(glm::cross(_direction, _right));
+            _direction = glm::normalize(glm::vec3(rotation * glm::vec4(s_forward, 0)));
+            _right = glm::normalize(glm::vec3(rotation * glm::vec4(s_right, 0)));
+            _up = glm::normalize(glm::vec3(rotation * glm::vec4(s_up, 0)));
 
             _view_matrix = glm::lookAt(_position, _position + _direction, _up);
         }
@@ -126,9 +125,9 @@ namespace Novo {
         }
 
         void move_rotate(const glm::vec3& delta_move, const glm::vec3 delta_rot) {
-            _position += _direction * delta_move.x;
-            _position += _right     * delta_move.y;
-            _position += _up        * delta_move.z;
+            _position += _right     * delta_move.x;
+            _position += _up        * delta_move.y;
+            _position += _direction * delta_move.z;
             _rotation += delta_rot;
             update_view_matrix();
         }

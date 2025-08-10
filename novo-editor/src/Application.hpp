@@ -31,32 +31,32 @@ private:
     glm::mat4 g_model = glm::mat4(1.f);
     glm::vec4 g_bgColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
 
-    glm::vec3 c_pos = glm::vec3(-1.f, 0.f, 0.f);
+    glm::vec3 c_pos = glm::vec3(0.f, 0.f, -1.f);
     glm::vec3 c_rot = glm::vec3(0.f, 0.f, 0.f);
     float c_fov = 90.f;
-    bool c_perspective = true;
     float c_speed = 10.f;
     float c_sensitivity = 5.f;
 
     GLfloat pos_col[20 * 2] = {
-        0, -1,-1,       -2.f, 2.f,
-        0, 1, -1,       2.f, 2.f,
-        0, -1, 1,       -2.f, -2.f,
-        0, 1,  1,       2.f, -2.f,
+        -1, -1, -1,     1,   0,
+        1, -1, -1,      0,   0,
+        -1, 1, -1,      1,   1,
+        1,  1, -1,      0,   1,
 
-        2, -1,-1,       -2.f, 2.f,
-        2, 1, -1,       2.f, 2.f,
-        2, -1, 1,       -2.f, -2.f,
-        2, 1,  1,       2.f, -2.f
+        -1, -1, 1,      1,   0,
+        1, -1,  1,      0,   0,
+        -1, 1,  1,      1,   1,
+        1,  1,  1,      0,   1,
     };
 
     GLuint indices[6 * 2] = {
         0, 1, 2, 3, 1, 2,
-        4, 5, 6, 7, 5, 6
+        4, 5, 6, 7, 5, 6,
     };
 
     bool b_debug = false;
     bool b_texture = false; // false = smile, true = quad
+    bool b_depth_test = true;
 
     GLuint texture_smile;
     GLuint texture_quads;
@@ -121,15 +121,15 @@ private:
 public:
     virtual void init() override {
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1920, 1080));
-        p_window->setMaximized(true);
+        // p_window->setMaximized(true);
         
-        const unsigned int width = 1000;
-        const unsigned int height = 1000;
+        const unsigned int width = 100;
+        const unsigned int height = 100;
         const unsigned int channels = 3;
         auto* data = new unsigned char[width * height * channels];
         
         smile_texture(data, width, height);
-        p_texture_smile = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels);
+        p_texture_smile = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels, GL_CLAMP_TO_EDGE, GL_NEAREST);
         
         quad_texture(data, width, height);
         p_texture_quads = std::make_unique<Novo::Texture2D>(data, glm::vec2(width, height), channels);
@@ -156,7 +156,7 @@ public:
         while (p_window->isOpen()) {
             p_window->update();
             glClearColor(g_bgColor.r, g_bgColor.g, g_bgColor.b, g_bgColor.a);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             p_shader->load();
 
@@ -166,9 +166,15 @@ public:
                 p_texture_smile->bind();
             }
 
+            if (b_depth_test) {
+                glEnable(GL_DEPTH_TEST);
+            } else {
+                glDisable(GL_DEPTH_TEST);
+            }
+
             // Camera matrix
             p_camera->set_fov(c_fov);
-            p_camera->set_projection_mode(c_perspective ? Novo::Camera::CameraType::Perspective : Novo::Camera::CameraType::Orthographic);
+            p_camera->set_projection_mode(Novo::Camera::CameraType::Perspective);
 
             g_model = glm::mat4(1.f);
             p_shader->setUniform("model", g_model);
@@ -195,38 +201,38 @@ public:
         }
 
         if (p_window->isKeyPressed(GLFW_KEY_W)) {
-            movement_delta.x += c_speed * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_S)) {
-            movement_delta.x -= c_speed * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_A)) {
-            movement_delta.y += c_speed * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_D)) {
-            movement_delta.y -= c_speed * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_E)) {
             movement_delta.z += c_speed * deltaTime;
         }
 
-        if (p_window->isKeyPressed(GLFW_KEY_Q)) {
+        if (p_window->isKeyPressed(GLFW_KEY_S)) {
             movement_delta.z -= c_speed * deltaTime;
+        }
+
+        if (p_window->isKeyPressed(GLFW_KEY_A)) {
+            movement_delta.x += c_speed * deltaTime;
+        }
+
+        if (p_window->isKeyPressed(GLFW_KEY_D)) {
+            movement_delta.x -= c_speed * deltaTime;
+        }
+
+        if (p_window->isKeyPressed(GLFW_KEY_E)) {
+            movement_delta.y += c_speed * deltaTime;
+        }
+
+        if (p_window->isKeyPressed(GLFW_KEY_Q)) {
+            movement_delta.y -= c_speed * deltaTime;
         }
         
         if (p_window->isMousePressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             p_window->hideCursor();
 
             if (p_window->isMousePressed(GLFW_MOUSE_BUTTON_LEFT)) {
-                movement_delta.y -= mouseDelta.x * (c_speed / 2) * deltaTime;
-                movement_delta.z -= mouseDelta.y * (c_speed / 2) * deltaTime;
+                movement_delta.x -= mouseDelta.x * (c_speed / 2) * deltaTime;
+                movement_delta.y -= mouseDelta.y * (c_speed / 2) * deltaTime;
             } else {
-                rotation_delta.y -= mouseDelta.y * c_sensitivity * deltaTime;
-                rotation_delta.z += mouseDelta.x * c_sensitivity * deltaTime;
+                rotation_delta.x += mouseDelta.y * c_sensitivity * deltaTime;
+                rotation_delta.y -= mouseDelta.x * c_sensitivity * deltaTime;
             }
         } else {
             p_window->showCursor();
@@ -272,13 +278,18 @@ public:
             ImGui::DragFloat("Speed", &c_speed, 0.01f, 0.f, 10.f, "%.2f");
 
             if (ImGui::Button("Reset Position")) {
-                p_camera->set_position(glm::vec3(-1.f, 0.f, 0.f));
+                p_camera->set_position(glm::vec3(0.f, 0.f, -1.f));
             }
 
             if (ImGui::Button("Reset Rotation")) {
                 p_camera->set_rotation(glm::vec3(0.f, 0.f, 0.f));
             }
 
+            ImGui::End();
+
+            ImGui::Begin("Options");
+            ImGui::SetWindowFontScale(1.5f);
+            ImGui::Checkbox("Depth test", &b_depth_test);
             ImGui::End();
 
             p_debugger->frame_end();
