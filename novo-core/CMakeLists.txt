@@ -9,8 +9,6 @@ add_library(${CORE_PROJECT_NAME} STATIC
     includes/novo-core/Shader.hpp
     includes/novo-core/VAO.hpp
     includes/novo-core/VBO.hpp
-
-    precompile/novo-precompiles/DefaultShader.h
 )
 
 
