@@ -50,5 +50,18 @@ namespace Novo {
         static void unbind(int unit = 0) {
             glBindTextureUnit(unit, 0);
         }
+
+        void setMinFilter(GLenum filter) {
+            glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, filter);
+        }
+
+        void setMagFilter(GLenum filter) {
+            glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, filter);
+        }
+
+        void setWrap(GLenum wrap) {
+            glTextureParameteri(_id, GL_TEXTURE_WRAP_S, wrap);
+            glTextureParameteri(_id, GL_TEXTURE_WRAP_T, wrap);
+        }
     };
 }
