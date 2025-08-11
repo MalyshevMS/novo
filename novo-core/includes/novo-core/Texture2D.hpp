@@ -8,7 +8,7 @@ namespace Novo {
     private:
         GLuint _id;
     public:
-        Texture2D(const unsigned char* texture, const glm::vec2& size, const unsigned int channels, const GLenum wrap = GL_REPEAT, const GLenum filter = GL_NEAREST) {
+        Texture2D(const unsigned char* texture, const glm::vec2& size, const unsigned int channels, const GLenum wrap = GL_REPEAT, const GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR, const GLenum mag_filter = GL_LINEAR) {
             GLenum internalFormat;
             GLenum format;
             switch (channels) {
@@ -25,14 +25,18 @@ namespace Novo {
                     format = GL_RGB;
             }
 
-            glCreateTextures(GL_TEXTURE_2D, 1, &_id);
-            glTextureStorage2D(_id, 1, internalFormat, size.x, size.y);
-            glTextureSubImage2D(_id, 0, 0, 0, size.x, size.y, format, GL_UNSIGNED_BYTE, texture);
+            const GLsizei mip_levels = (GLsizei)log2(std::max(size.x, size.y)) + 1;
 
+            glCreateTextures(GL_TEXTURE_2D, 1, &_id);
+            glTextureStorage2D(_id, mip_levels, internalFormat, size.x, size.y);
+            glTextureSubImage2D(_id, 0, 0, 0, size.x, size.y, format, GL_UNSIGNED_BYTE, texture);
+            
             glTextureParameteri(_id, GL_TEXTURE_WRAP_S, wrap);
             glTextureParameteri(_id, GL_TEXTURE_WRAP_T, wrap);
-            glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, filter);
-            glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, filter);
+            glTextureParameteri(_id, GL_TEXTURE_MIN_FILTER, min_filter);
+            glTextureParameteri(_id, GL_TEXTURE_MAG_FILTER, mag_filter);
+
+            glGenerateTextureMipmap(_id);
         }
 
         ~Texture2D() {

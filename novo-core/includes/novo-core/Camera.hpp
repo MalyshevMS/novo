@@ -26,7 +26,7 @@ namespace Novo {
         glm::mat4 _proj_matrix;
         float _fov;
         float _aspect_ratio;
-        float _near = 0.1f;
+        float _near = 0.001f;
         float _far = 100.f;
 
         void update_view_matrix() {
