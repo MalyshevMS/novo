@@ -33,11 +33,11 @@ private:
 
     bool b_debug = false;
 public:
-    virtual void init() override {
+    virtual void init(const char** argv) override {
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1920, 1080));
         p_window->setMaximized(true);
 
-        p_resources = std::make_unique<Novo::Resources>(__argv[0]);
+        p_resources = std::make_unique<Novo::Resources>(argv[0]);
 
         p_camera = std::make_shared<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
         p_shader = std::make_shared<Novo::Shader>();

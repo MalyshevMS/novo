@@ -2,7 +2,7 @@
 
 int main(int argc, char const *argv[]) {
     NovoEditor app;
-    app.init();
+    app.init(argv);
     app.on_update();
     return 0;
 }

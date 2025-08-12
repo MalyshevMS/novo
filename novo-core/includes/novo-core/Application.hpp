@@ -17,7 +17,7 @@ namespace Novo {
     class Application {
     private:
     public:
-        virtual void init() {}
+        virtual void init(const char**) {}
         virtual void on_update() {}
         virtual void key_pressed() {}
     };
