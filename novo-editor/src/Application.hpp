@@ -10,43 +10,26 @@
 class NovoEditor : public Novo::Application {
 private:
     std::unique_ptr<Novo::Window> p_window = nullptr;
-    std::unique_ptr<Novo::Camera> p_camera = nullptr;
-
-    std::unique_ptr<Novo::VAO> p_vao = nullptr;
-    std::unique_ptr<Novo::VBO> p_vbo = nullptr;
-    std::unique_ptr<Novo::IBO> p_ibo = nullptr;
-
-    std::unique_ptr<Novo::Shader> p_shader = nullptr;
-    
     std::unique_ptr<Novo::Resources> p_resources = nullptr;
-
     std::unique_ptr<Debugger> p_debugger = nullptr;
+
+    std::shared_ptr<Novo::Camera> p_camera = nullptr;
+    std::shared_ptr<Novo::Shader> p_shader = nullptr;
+
+    std::unique_ptr<Novo::Mesh::Box> p_box1 = nullptr;
+    std::unique_ptr<Novo::Mesh::Box> p_box2 = nullptr;
+    std::unique_ptr<Novo::Mesh::Plane> p_plane1 = nullptr;
+    std::unique_ptr<Novo::Mesh::Plane> p_plane2 = nullptr;
+    std::unique_ptr<Novo::Mesh::Triangle> p_triangle = nullptr;
 
     glm::mat4 g_model = glm::mat4(1.f);
     glm::vec4 g_bgColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
 
-    glm::vec3 c_pos = glm::vec3(0.f, 0.f, -1.f);
+    glm::vec3 c_pos = glm::vec3(0.f, 2.f, -3.f);
     glm::vec3 c_rot = glm::vec3(0.f, 0.f, 0.f);
     float c_fov = 90.f;
     float c_speed = 10.f;
     float c_sensitivity = 5.f;
-
-    GLfloat pos_col[20 * 2] = {
-        -1, -1, -1,     1.f,   0.f,
-        1, -1, -1,      0.f,   0.f,
-        -1, 1, -1,      1.f,   1.f,
-        1,  1, -1,      0.f,   1.f,
-
-        -1, -1, 1,      1.f,   0.f,
-        1, -1,  1,      0.f,   0.f,
-        -1, 1,  1,      1.f,   1.f,
-        1,  1,  1,      0.f,   1.f,
-    };
-
-    GLuint indices[6 * 2] = {
-        0, 1, 2, 3, 1, 2,
-        4, 5, 6, 7, 5, 6,
-    };
 
     bool b_debug = false;
 public:
@@ -56,22 +39,27 @@ public:
 
         p_resources = std::make_unique<Novo::Resources>(__argv[0]);
 
-        p_camera = std::make_unique<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
-        p_shader = std::make_unique<Novo::Shader>();
+        p_camera = std::make_shared<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
+        p_shader = std::make_shared<Novo::Shader>();
         p_shader->addShader(p_resources->getFileStr("res/shaders/vertex.glsl"), GL_VERTEX_SHADER);
         p_shader->addShader(p_resources->getFileStr("res/shaders/fragment.glsl"), GL_FRAGMENT_SHADER);
         p_shader->link();
 
-        p_vbo = std::make_unique<Novo::VBO>(pos_col, sizeof(pos_col), Novo::Layout::l_texture);
-        p_ibo = std::make_unique<Novo::IBO>(indices, sizeof(indices) / sizeof(GLuint));
-        p_vao = std::make_unique<Novo::VAO>();
-
-        p_vao->addVBO(*p_vbo);
-        p_vao->setIBO(*p_ibo);
-
         p_debugger = std::make_unique<Debugger>(*p_window);
 
-        p_resources->loadTexture("Texture", "res/textures/texture.png")->setMagFilter(GL_NEAREST);
+        auto test_texture = p_resources->loadTexture("Texture", "res/textures/texture.png");
+        auto box_texture = p_resources->loadTexture("Box", "res/textures/box_texture.png");
+        auto grass_texture = p_resources->loadTexture("Grass", "res/textures/grass.png");
+
+        test_texture->setMagFilter(GL_NEAREST);
+
+        p_triangle = std::make_unique<Novo::Mesh::Triangle>(box_texture, p_shader, glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 3.f, 0.f));
+
+        p_plane1 = std::make_unique<Novo::Mesh::Plane>(grass_texture, p_shader, glm::vec3(2.f, -1.f, 0.f));
+        p_plane2 = std::make_unique<Novo::Mesh::Plane>(box_texture, p_shader, glm::vec3(3.f, -1.f, 5.f));
+
+        p_box1 = std::make_unique<Novo::Mesh::Box>(test_texture, p_shader);
+        p_box2 = std::make_unique<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(5.f, 0.f, 0.f));
     }
 
     virtual void on_update() override {
@@ -81,21 +69,11 @@ public:
             glClearColor(g_bgColor.r, g_bgColor.g, g_bgColor.b, g_bgColor.a);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            p_shader->load();
-
-            p_resources->getTexture("Texture")->bind();
-
-            // Camera matrix
-            p_camera->set_fov(c_fov);
-            p_camera->set_projection_mode(Novo::Camera::CameraType::Perspective);
-
-            g_model = glm::mat4(1.f);
-            p_shader->setUniform("model", g_model);
-            p_shader->setUniform("view_projection", p_camera->get_view_proj_matrix());
-
-            p_vao->draw();
-
-            p_shader->unload();
+            p_box1->draw(p_camera);
+            p_box2->draw(p_camera);
+            p_triangle->draw(p_camera);
+            p_plane1->draw(p_camera);
+            p_plane2->draw(p_camera);
 
             key_pressed();
             debug();
@@ -136,6 +114,10 @@ public:
         if (p_window->isKeyPressed(GLFW_KEY_Q)) {
             movement_delta.y -= c_speed * deltaTime;
         }
+
+        if (p_window->isKeyPressed(GLFW_KEY_R)) {
+            p_box1->set_uv(glm::vec2(1.f, 1.f));
+        }
         
         if (p_window->isMousePressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             p_window->hideCursor();
@@ -173,7 +155,10 @@ public:
 
             ImGui::Begin("Camera");
             ImGui::SetWindowFontScale(1.5f);
-            ImGui::DragFloat("FOV", &c_fov);
+            if (ImGui::DragFloat("FOV", &c_fov)) {
+                p_camera->set_fov(c_fov);
+            }
+
             if (ImGui::DragFloat3("Position", glm::value_ptr(c_pos))) {
                 p_camera->set_position(c_pos);
             }
@@ -194,6 +179,12 @@ public:
             }
 
             ImGui::End();
+
+            p_box1->draw_ui("Box 1");
+            p_box2->draw_ui("Box 2");
+            p_plane1->draw_ui("Plane 1");
+            p_plane2->draw_ui("Plane 2");
+            p_triangle->draw_ui("Triangle");
 
             p_debugger->frame_end();
         }

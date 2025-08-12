@@ -9,6 +9,10 @@
 #include <novo-core/Camera.hpp>
 #include <novo-core/Resources.hpp>
 
+#include <novo-core/Mesh/Box.hpp>
+#include <novo-core/Mesh/Plane.hpp>
+#include <novo-core/Mesh/Triangle.hpp>
+
 namespace Novo {
     class Application {
     private:
