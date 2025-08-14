@@ -16,12 +16,6 @@ private:
     std::shared_ptr<Novo::Camera> p_camera = nullptr;
     std::shared_ptr<Novo::Shader> p_shader = nullptr;
 
-    std::shared_ptr<Novo::Mesh::Box> p_box1 = nullptr;
-    std::shared_ptr<Novo::Mesh::Box> p_box2 = nullptr;
-    std::shared_ptr<Novo::Mesh::Plane> p_plane1 = nullptr;
-    std::shared_ptr<Novo::Mesh::Plane> p_plane2 = nullptr;
-    std::shared_ptr<Novo::Mesh::Triangle> p_triangle = nullptr;
-
     std::unique_ptr<Novo::Scene> p_scene = nullptr;
 
     glm::mat4 g_model = glm::mat4(1.f);
@@ -56,21 +50,14 @@ public:
         auto grass_texture = p_resources->loadTexture("Grass", "res/textures/grass.png");
 
         test_texture->setMagFilter(GL_NEAREST);
-
-        p_plane1 = std::make_shared<Novo::Mesh::Plane>(grass_texture, p_shader, glm::vec3(2.f, -1.f, 0.f));
-        p_plane2 = std::make_shared<Novo::Mesh::Plane>(box_texture, p_shader, glm::vec3(3.f, -1.f, 5.f));
-    
-        p_box1 = std::make_shared<Novo::Mesh::Box>(test_texture, p_shader);
-        p_triangle = std::make_shared<Novo::Mesh::Triangle>(box_texture, p_shader, glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 3.f, 0.f));
-        p_box2 = std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(5.f, 0.f, 0.f));
         
         p_scene = std::make_unique<Novo::Scene>();
 
-        p_scene->add_object(p_triangle, "Triangle");
-        p_scene->add_object(p_plane1, "Plane 1");
-        p_scene->add_object(p_plane2, "Plane 2");
-        p_scene->add_object(p_box1, "Box 1");
-        p_scene->add_object(p_box2, "Box 2");
+        p_scene->add_object(Novo::Mesh::Box(box_texture, p_shader, glm::vec3( 0.f,  0.f,  0.f)), "Box 1");
+        p_scene->add_object(Novo::Mesh::Box(box_texture, p_shader, glm::vec3(-3.f, -1.f,  1.f)), "Box 2");
+        p_scene->add_object(Novo::Mesh::Box(box_texture, p_shader, glm::vec3(-1.f,  5.f, -3.f)), "Box 3");
+        p_scene->add_object(Novo::Mesh::Box(box_texture, p_shader, glm::vec3( 2.f, -4.f, -1.f)), "Box 4");
+        p_scene->add_object(Novo::Mesh::Box(box_texture, p_shader, glm::vec3( 3.f, -4.f, -5.f)), "Box 5");
         
         p_scene->reload_all();
     }
@@ -121,10 +108,6 @@ public:
 
         if (p_window->isKeyPressed(GLFW_KEY_Q)) {
             movement_delta.y -= c_speed * deltaTime;
-        }
-
-        if (p_window->isKeyPressed(GLFW_KEY_R)) {
-            p_box1->set_uv(glm::vec2(1.f, 1.f));
         }
         
         if (p_window->isMousePressed(GLFW_MOUSE_BUTTON_RIGHT)) {
