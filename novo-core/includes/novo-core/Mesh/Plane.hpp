@@ -2,12 +2,12 @@
 
 #include <novo-core/Mesh/MeshBase.hpp>
 
-#define VERTECES_UV { \
-/*  X   Y   Z         U    V*/      \
-    -1, 0, -1,      _uv.x,   0.f,   \
-    1, 0, -1,       0.f,     0.f,   \
-    -1, 0, 1,       _uv.x,   _uv.y, \
-    1,  0, 1,       0.f,     _uv.y, \
+#define VERTIECES_NORMAL_UV { \
+/*  X   Y   Z     NORMAL              U    V*/      \
+    -1, 0, -1, 0.0, 1.0, 0.0,      _uv.x,   0.f,   \
+    1, 0, -1,  0.0, 1.0, 0.0,      0.f,     0.f,   \
+    -1, 0, 1,  0.0, 1.0, 0.0,      _uv.x,   _uv.y, \
+    1,  0, 1,  0.0, 1.0, 0.0,      0.f,     _uv.y, \
 }
 
 namespace Novo {
@@ -16,7 +16,7 @@ namespace Novo {
         public:
             Plane(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
             : MeshBase(std::move(texture), std::move(shader), position, size, rotation) {
-                GLfloat vertices_uv[] = VERTECES_UV;
+                GLfloat vertices_uv[] = VERTIECES_NORMAL_UV;
 
                 GLuint indices[] = {
                     0, 1, 2,
@@ -38,7 +38,7 @@ namespace Novo {
 
             virtual void set_uv(glm::vec2 uv) override {
                 _uv = uv;
-                GLfloat new_uv[20] = VERTECES_UV;
+                GLfloat new_uv[] = VERTIECES_NORMAL_UV;
 
                 delete _vbo;
                 delete _vao;
@@ -53,4 +53,4 @@ namespace Novo {
     }
 }
 
-#undef VERTECES_UV
+#undef VERTIECES_NORMAL_UV

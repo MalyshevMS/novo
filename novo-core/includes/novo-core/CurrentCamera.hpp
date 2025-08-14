@@ -13,5 +13,9 @@ namespace Novo {
         static glm::mat4 get_view_proj_matrix() {
             return CurrentCamera::p_current_camera->get_view_proj_matrix();
         }
+
+        static glm::vec3 get_position() {
+            return CurrentCamera::p_current_camera->get_position();
+        }
     };
 }
