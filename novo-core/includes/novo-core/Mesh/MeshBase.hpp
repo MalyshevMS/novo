@@ -90,6 +90,10 @@ namespace Novo {
                 }
                 ImGui::End();
             }
+
+            virtual void reload() {
+                set_uv(_uv);
+            }
         };
     }
 }

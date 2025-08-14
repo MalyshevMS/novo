@@ -53,13 +53,19 @@ public:
 
         test_texture->setMagFilter(GL_NEAREST);
 
-        p_triangle = std::make_unique<Novo::Mesh::Triangle>(box_texture, p_shader, glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 3.f, 0.f));
-
         p_plane1 = std::make_unique<Novo::Mesh::Plane>(grass_texture, p_shader, glm::vec3(2.f, -1.f, 0.f));
         p_plane2 = std::make_unique<Novo::Mesh::Plane>(box_texture, p_shader, glm::vec3(3.f, -1.f, 5.f));
-
+        
         p_box1 = std::make_unique<Novo::Mesh::Box>(test_texture, p_shader);
         p_box2 = std::make_unique<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(5.f, 0.f, 0.f));
+
+        p_triangle = std::make_unique<Novo::Mesh::Triangle>(box_texture, p_shader, glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 3.f, 0.f));
+        
+        p_box1->reload();
+        p_box2->reload();
+        p_plane1->reload();
+        p_plane2->reload();
+        p_triangle->reload();
     }
 
     virtual void on_update() override {
