@@ -50,9 +50,9 @@ namespace Novo {
                     20, 21, 22, 21, 22, 23, // Down
                 };
 
-                _vbo = std::make_unique<Novo::VBO>(vertices_uv, sizeof(vertices_uv), Novo::Layout::l_texture);
-                _ibo = std::make_unique<Novo::IBO>(indices, sizeof(indices) / sizeof(GLuint));
-                _vao = std::make_unique<Novo::VAO>();
+                _vbo = new Novo::VBO(vertices_uv, sizeof(vertices_uv), Novo::Layout::l_texture);
+                _ibo = new Novo::IBO(indices, sizeof(indices) / sizeof(GLuint));
+                _vao = new Novo::VAO();
                 
                 _vao->addVBO(*_vbo);
                 _vao->setIBO(*_ibo);
@@ -92,8 +92,11 @@ namespace Novo {
                     1, -1, 1,       0.f,     _uv.y
                 };
 
-                _vbo = std::make_unique<Novo::VBO>(new_uv, sizeof(new_uv), Novo::Layout::l_texture);
-                _vao = std::make_unique<Novo::VAO>();
+                delete _vbo;
+                delete _vao;
+
+                _vbo = new Novo::VBO(new_uv, sizeof(new_uv), Novo::Layout::l_texture);
+                _vao = new Novo::VAO();
                 
                 _vao->addVBO(*_vbo);
                 _vao->setIBO(*_ibo);

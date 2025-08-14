@@ -16,11 +16,13 @@ private:
     std::shared_ptr<Novo::Camera> p_camera = nullptr;
     std::shared_ptr<Novo::Shader> p_shader = nullptr;
 
-    std::unique_ptr<Novo::Mesh::Box> p_box1 = nullptr;
-    std::unique_ptr<Novo::Mesh::Box> p_box2 = nullptr;
-    std::unique_ptr<Novo::Mesh::Plane> p_plane1 = nullptr;
-    std::unique_ptr<Novo::Mesh::Plane> p_plane2 = nullptr;
-    std::unique_ptr<Novo::Mesh::Triangle> p_triangle = nullptr;
+    std::shared_ptr<Novo::Mesh::Box> p_box1 = nullptr;
+    std::shared_ptr<Novo::Mesh::Box> p_box2 = nullptr;
+    std::shared_ptr<Novo::Mesh::Plane> p_plane1 = nullptr;
+    std::shared_ptr<Novo::Mesh::Plane> p_plane2 = nullptr;
+    std::shared_ptr<Novo::Mesh::Triangle> p_triangle = nullptr;
+
+    std::unique_ptr<Novo::Scene> p_scene = nullptr;
 
     glm::mat4 g_model = glm::mat4(1.f);
     glm::vec4 g_bgColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
@@ -47,25 +49,30 @@ public:
 
         p_debugger = std::make_unique<Debugger>(*p_window);
 
+        Novo::CurrentCamera::set_camera(p_camera);
+
         auto test_texture = p_resources->loadTexture("Texture", "res/textures/texture.png");
         auto box_texture = p_resources->loadTexture("Box", "res/textures/box_texture.png");
         auto grass_texture = p_resources->loadTexture("Grass", "res/textures/grass.png");
 
         test_texture->setMagFilter(GL_NEAREST);
 
-        p_plane1 = std::make_unique<Novo::Mesh::Plane>(grass_texture, p_shader, glm::vec3(2.f, -1.f, 0.f));
-        p_plane2 = std::make_unique<Novo::Mesh::Plane>(box_texture, p_shader, glm::vec3(3.f, -1.f, 5.f));
+        p_plane1 = std::make_shared<Novo::Mesh::Plane>(grass_texture, p_shader, glm::vec3(2.f, -1.f, 0.f));
+        p_plane2 = std::make_shared<Novo::Mesh::Plane>(box_texture, p_shader, glm::vec3(3.f, -1.f, 5.f));
+    
+        p_box1 = std::make_shared<Novo::Mesh::Box>(test_texture, p_shader);
+        p_triangle = std::make_shared<Novo::Mesh::Triangle>(box_texture, p_shader, glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 3.f, 0.f));
+        p_box2 = std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(5.f, 0.f, 0.f));
         
-        p_box1 = std::make_unique<Novo::Mesh::Box>(test_texture, p_shader);
-        p_box2 = std::make_unique<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(5.f, 0.f, 0.f));
+        p_scene = std::make_unique<Novo::Scene>();
 
-        p_triangle = std::make_unique<Novo::Mesh::Triangle>(box_texture, p_shader, glm::vec3(1.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 3.f, 0.f));
+        p_scene->add_object(p_triangle, "Triangle");
+        p_scene->add_object(p_plane1, "Plane 1");
+        p_scene->add_object(p_plane2, "Plane 2");
+        p_scene->add_object(p_box1, "Box 1");
+        p_scene->add_object(p_box2, "Box 2");
         
-        p_box1->reload();
-        p_box2->reload();
-        p_plane1->reload();
-        p_plane2->reload();
-        p_triangle->reload();
+        p_scene->reload_all();
     }
 
     virtual void on_update() override {
@@ -75,12 +82,7 @@ public:
             glClearColor(g_bgColor.r, g_bgColor.g, g_bgColor.b, g_bgColor.a);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            p_box1->draw(p_camera);
-            p_box2->draw(p_camera);
-            p_triangle->draw(p_camera);
-            p_plane1->draw(p_camera);
-            p_plane2->draw(p_camera);
-
+            p_scene->render();
             key_pressed();
             debug();
         }
@@ -183,14 +185,8 @@ public:
             if (ImGui::Button("Reset Rotation")) {
                 p_camera->set_rotation(glm::vec3(0.f, 0.f, 0.f));
             }
-
             ImGui::End();
-
-            p_box1->draw_ui("Box 1");
-            p_box2->draw_ui("Box 2");
-            p_plane1->draw_ui("Plane 1");
-            p_plane2->draw_ui("Plane 2");
-            p_triangle->draw_ui("Triangle");
+            p_scene->draw_ui();
 
             p_debugger->frame_end();
         }

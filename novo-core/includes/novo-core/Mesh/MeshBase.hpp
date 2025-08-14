@@ -5,7 +5,7 @@
 #include <novo-core/VAO.hpp>
 #include <novo-core/IBO.hpp>
 #include <novo-core/Texture2D.hpp>
-#include <novo-core/Camera.hpp>
+#include <novo-core/CurrentCamera.hpp>
 
 #include <novo-precompiles/Layouts.h>
 
@@ -17,9 +17,9 @@ namespace Novo {
     namespace Mesh {
         class MeshBase {
         protected:
-            std::unique_ptr<Novo::VAO> _vao = nullptr;
-            std::unique_ptr<Novo::VBO> _vbo = nullptr;
-            std::unique_ptr<Novo::IBO> _ibo = nullptr;
+            Novo::VAO* _vao = nullptr;
+            Novo::VBO* _vbo = nullptr;
+            Novo::IBO* _ibo = nullptr;
 
             std::shared_ptr<Novo::Shader> _shader = nullptr;
             std::shared_ptr<Novo::Texture2D> _texture = nullptr;
@@ -40,7 +40,7 @@ namespace Novo {
                 _rotation = rotation;
             };
 
-            virtual void draw(std::shared_ptr<Novo::Camera> camera) {
+            virtual void draw() {
                 _shader->load();
                 _texture->bind(0);
                 glm::mat4 model = glm::mat4(1.f);
@@ -53,7 +53,7 @@ namespace Novo {
                 model = translate * rotate_x * rotate_y * rotate_z * scale;
 
                 _shader->setUniform("model", model);
-                _shader->setUniform("view_projection", camera->get_view_proj_matrix());
+                _shader->setUniform("view_projection", CurrentCamera::get_view_proj_matrix());
 
                 _vao->draw();
                 _shader->unload();
@@ -74,8 +74,7 @@ namespace Novo {
             }
 
             virtual void draw_ui(const std::string& tab_name) {
-                ImGui::Begin(tab_name.c_str());
-                ImGui::SetWindowFontScale(1.5f);
+                if (!ImGui::TreeNode(tab_name.c_str())) return;
                 if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
                     set_position(_position);
                 }
@@ -88,7 +87,7 @@ namespace Novo {
                 if (ImGui::DragFloat2("UV", glm::value_ptr(_uv), 0.1f)) {
                     set_uv(_uv);
                 }
-                ImGui::End();
+                ImGui::TreePop();
             }
 
             virtual void reload() {
