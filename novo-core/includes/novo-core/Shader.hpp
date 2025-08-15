@@ -91,6 +91,10 @@ namespace Novo {
             }
         }
 
+        bool isLinked() const {
+            return _isLinked;
+        }
+
         void load() const {
             glUseProgram(_shaderID);
         }

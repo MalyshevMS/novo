@@ -94,7 +94,7 @@ namespace Novo {
                 _vao->setIBO(*_ibo);
             }
 
-            virtual void draw_ui(const std::string& tab_name) {
+            virtual void draw_ui(const std::string& tab_name) override {
                 if (!ImGui::TreeNode(tab_name.c_str())) return;
                 if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
                     set_position(_position);

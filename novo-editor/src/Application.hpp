@@ -10,7 +10,7 @@
 class NovoEditor : public Novo::Application {
 private:
     std::unique_ptr<Novo::Window> p_window = nullptr;
-    std::unique_ptr<Novo::Resources> p_resources = nullptr;
+    std::shared_ptr<Novo::Resources> p_resources = nullptr;
     std::unique_ptr<Debugger> p_debugger = nullptr;
 
     std::shared_ptr<Novo::Camera> p_camera = nullptr;
@@ -35,31 +35,24 @@ public:
         p_window = std::make_unique<Novo::Window>("Novo", glm::vec2(1920, 1080));
         p_window->setMaximized(true);
 
-        p_resources = std::make_unique<Novo::Resources>(argv[0]);
+        p_resources = std::make_shared<Novo::Resources>(argv[0]);
 
         p_camera = std::make_shared<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
         
-        p_shader = std::make_shared<Novo::Shader>();
-        p_shader->addShader(p_resources->getFileStr("res/shaders/vertex.glsl"), GL_VERTEX_SHADER);
-        p_shader->addShader(p_resources->getFileStr("res/shaders/fragment.glsl"), GL_FRAGMENT_SHADER);
-        p_shader->link();
-
-        p_light_shader = std::make_shared<Novo::Shader>();
-        p_light_shader->addShader(p_resources->getFileStr("res/shaders/light_source.vert"), GL_VERTEX_SHADER);
-        p_light_shader->addShader(p_resources->getFileStr("res/shaders/light_source.frag"), GL_FRAGMENT_SHADER);
-        p_light_shader->link();
+        p_shader = p_resources->loadShader("ObjShader", "res/shaders/vertex.glsl", "res/shaders/fragment.glsl");
+        p_light_shader = p_resources->loadShader("LightSource", "res/shaders/light_source.vert", "res/shaders/light_source.frag");
 
         p_debugger = std::make_unique<Debugger>(*p_window);
 
         Novo::CurrentCamera::set_camera(p_camera);
 
-        auto test_texture = p_resources->loadTexture("Texture", "res/textures/texture.png");
+        auto test_texture = p_resources->loadTexture("TestTexture", "res/textures/texture.png");
         auto box_texture = p_resources->loadTexture("Box", "res/textures/box_texture.png");
         auto grass_texture = p_resources->loadTexture("Grass", "res/textures/grass.png");
 
         test_texture->setMagFilter(GL_NEAREST);
         
-        p_scene = std::make_unique<Novo::Scene>();
+        p_scene = std::make_unique<Novo::Scene>(p_resources);
 
         p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3( 4.f,  0.f,  0.f)), "Box 1");
         p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(-3.f, -1.f,  1.f)), "Box 2");
