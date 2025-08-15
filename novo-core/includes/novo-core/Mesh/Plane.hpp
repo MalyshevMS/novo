@@ -6,8 +6,8 @@
 /*  X   Y   Z     NORMAL              U    V*/      \
     -1, 0, -1, 0.0, 1.0, 0.0,      _uv.x,   0.f,   \
     1, 0, -1,  0.0, 1.0, 0.0,      0.f,     0.f,   \
-    -1, 0, 1,  0.0, 1.0, 0.0,      _uv.x,   _uv.y, \
     1,  0, 1,  0.0, 1.0, 0.0,      0.f,     _uv.y, \
+    -1, 0, 1,  0.0, 1.0, 0.0,      _uv.x,   _uv.y, \
 }
 
 namespace Novo {
@@ -20,7 +20,7 @@ namespace Novo {
 
                 GLuint indices[] = {
                     0, 1, 2,
-                    1, 2, 3
+                    0, 2, 3
                 };
 
                 _vbo = new Novo::VBO(vertices_uv, sizeof(vertices_uv), Novo::Layout::l_texture);
