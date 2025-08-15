@@ -10,6 +10,7 @@
 #include <novo-core/CurrentCamera.hpp>
 #include <novo-core/Resources.hpp>
 #include <novo-core/Scene.hpp>
+#include <novo-core/Material.hpp>
 
 #include <novo-core/Mesh/Box.hpp>
 #include <novo-core/Mesh/Plane.hpp>

@@ -14,8 +14,8 @@ namespace Novo {
         private:
             glm::vec3 a, b, c;
         public:
-            Triangle(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
-            : MeshBase(std::move(texture), std::move(shader), position, size, rotation), a(a), b(b), c(c) {
+            Triangle(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, std::shared_ptr<Material> material, glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
+            : MeshBase(std::move(texture), std::move(shader), std::move(material), position, size, rotation), a(a), b(b), c(c) {
                 GLfloat vertices_uv[] = VERTIECES_NORMAL_UV;
                 GLuint indices[] = {
                     0, 1, 2

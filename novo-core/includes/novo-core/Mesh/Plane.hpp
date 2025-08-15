@@ -14,8 +14,8 @@ namespace Novo {
     namespace Mesh {
         class Plane : public MeshBase {
         public:
-            Plane(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
-            : MeshBase(std::move(texture), std::move(shader), position, size, rotation) {
+            Plane(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, std::shared_ptr<Material> material, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
+            : MeshBase(std::move(texture), std::move(shader), std::move(material), position, size, rotation) {
                 GLfloat vertices_uv[] = VERTIECES_NORMAL_UV;
 
                 GLuint indices[] = {

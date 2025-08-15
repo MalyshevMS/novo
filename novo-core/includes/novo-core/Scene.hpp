@@ -11,7 +11,6 @@ namespace Novo {
         using ObjPair = std::pair<std::shared_ptr<Novo::Mesh::MeshBase>, std::string>;
         std::vector<ObjPair> _objects = {};
         std::shared_ptr<Novo::Resources> _resources;
-        bool _isAddingObject = false;
     public:
         Scene(std::shared_ptr<Novo::Resources> resources) {
             _resources = resources;
@@ -45,18 +44,35 @@ namespace Novo {
             for (auto& obj : _objects) {
                 obj.first->draw_ui(obj.second);
             }
+            static bool isAddingObject = false;
+            static bool isAddingMaterial = false;
 
             if (ImGui::Button("Add object...")) {
-                _isAddingObject = true;
+                isAddingObject = true;
+            }
+            if (ImGui::Button("Add material...")) {
+                isAddingMaterial = true;
             }
 
-            if (_isAddingObject) {
+            if (isAddingObject) {
                 static std::string type = "Box";
                 static std::string texture = "None";
                 static std::string shader = "None";
+                static std::string material = "None";
+                static std::string name = "";
+                static std::vector<char> buffer(256);
 
-                ImGui::Begin("Add object", &_isAddingObject);
+                if (name.size() >= buffer.size()) {
+                    buffer.resize(name.size() + 1);
+                }
+                memcpy(buffer.data(), name.c_str(), name.size() + 1);
+
+                ImGui::Begin("Add object", &isAddingObject);
                 ImGui::SetWindowFontScale(1.5f);
+
+                if (ImGui::InputText("Name", buffer.data(), buffer.size())) {
+                    name.assign(buffer.data());
+                }
                 if (ImGui::BeginCombo("Type", type.c_str())){
                     if (ImGui::Selectable("Box")) {
                         type = "Box";
@@ -82,19 +98,56 @@ namespace Novo {
                     }
                     ImGui::EndCombo();
                 }
+                if (ImGui::BeginCombo("Material", material.c_str())) {
+                    for (auto& mat : _resources->getMaterialsMap()) {
+                        if (ImGui::Selectable(mat.first.c_str())) {
+                            material = mat.first;
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
                 if (ImGui::Button("Add")) {
-                    std::cout << "Adding object: " << type << " with texture: " << texture << " and shader: " << shader << std::endl;
                     if (type == "Box") {
-                        add_object(std::make_shared<Novo::Mesh::Box>(_resources->getTexture(texture), _resources->getShader(shader)));
+                        add_object(std::make_shared<Novo::Mesh::Box>(_resources->getTexture(texture), _resources->getShader(shader), _resources->getMaterial(material)), name);
                     } else if (type == "Plane") {
-                        add_object(std::make_shared<Novo::Mesh::Plane>(_resources->getTexture(texture), _resources->getShader(shader)));
+                        add_object(std::make_shared<Novo::Mesh::Plane>(_resources->getTexture(texture), _resources->getShader(shader), _resources->getMaterial(material)), name);
                     }
                     reload_all();
-                    _isAddingObject = false;
+                    isAddingObject = false;
                 }
                 if (ImGui::Button("Cancel")) {
-                    _isAddingObject = false;
+                    isAddingObject = false;
                 }
+                ImGui::End();
+            }
+
+            if (isAddingMaterial) {
+                static std::shared_ptr<Novo::Material> material = std::make_shared<Novo::Material>();
+                static std::string name = "";
+                static std::vector<char> buffer(256);
+
+                if (name.size() >= buffer.size()) {
+                    buffer.resize(name.size() + 1);
+                }
+                memcpy(buffer.data(), name.c_str(), name.size() + 1);
+
+                ImGui::Begin("Add material", &isAddingMaterial);
+                ImGui::SetWindowFontScale(1.5f);
+                if (ImGui::InputText("Name", buffer.data(), buffer.size())) {
+                    name.assign(buffer.data());
+                }
+                ImGui::DragFloat("Ambient factor", &material->ambient_factor, 0.01f);
+                ImGui::DragFloat("Diffuse factor", &material->diffuse_factor, 0.01f);
+                ImGui::DragFloat("Specular factor", &material->specular_factor, 0.01f);
+                ImGui::DragFloat("Shininess", &material->shininess, 0.01f);
+                if (ImGui::Button("Add")) {
+                    _resources->addMaterial(name, material);
+                    isAddingMaterial = false;
+                }
+                if (ImGui::Button("Cancel")) {
+                    isAddingMaterial = false;
+                }
+
                 ImGui::End();
             }
 

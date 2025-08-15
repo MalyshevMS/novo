@@ -16,6 +16,7 @@ private:
     std::shared_ptr<Novo::Camera> p_camera = nullptr;
     std::shared_ptr<Novo::Shader> p_shader = nullptr;
     std::shared_ptr<Novo::Shader> p_light_shader = nullptr;
+    std::shared_ptr<Novo::Material> p_material = nullptr;
 
     std::unique_ptr<Novo::Scene> p_scene = nullptr;
 
@@ -41,6 +42,7 @@ public:
         
         p_shader = p_resources->loadShader("ObjShader", "res/shaders/vertex.glsl", "res/shaders/fragment.glsl");
         p_light_shader = p_resources->loadShader("LightSource", "res/shaders/light_source.vert", "res/shaders/light_source.frag");
+        p_material = p_resources->loadMaterial("BoxMaterial",  "res/materials/box_material.json");
 
         p_debugger = std::make_unique<Debugger>(*p_window);
 
@@ -54,11 +56,11 @@ public:
         
         p_scene = std::make_unique<Novo::Scene>(p_resources);
 
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3( 4.f,  0.f,  0.f)), "Box 1");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(-3.f, -1.f,  1.f)), "Box 2");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3(-1.f,  5.f, -3.f)), "Box 3");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3( 2.f, -4.f, -1.f)), "Box 4");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, glm::vec3( 3.f, -4.f, -5.f)), "Box 5");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3( 4.f,  0.f,  0.f)), "Box 1");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(-3.f, -1.f,  1.f)), "Box 2");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(-1.f,  5.f, -3.f)), "Box 3");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3( 2.f, -4.f, -1.f)), "Box 4");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3( 3.f, -4.f, -5.f)), "Box 5");
         
         p_scene->reload_all();
 

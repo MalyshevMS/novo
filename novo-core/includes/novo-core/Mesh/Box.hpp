@@ -47,8 +47,8 @@ namespace Novo {
         private:
             bool _inverse = false;
         public:
-            Box(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
-               : MeshBase(std::move(texture), std::move(shader), position, size, rotation) {
+            Box(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, std::shared_ptr<Material> material, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
+               : MeshBase(std::move(texture), std::move(shader), std::move(material), position, size, rotation) {
                 GLfloat vertices_uv[] = VERTIECES_NORMAL_UV;
 
                 GLuint indices[] = {
@@ -109,17 +109,17 @@ namespace Novo {
                     set_uv(_uv);
                 }
                 if (ImGui::TreeNode("Material")) {
-                    if (ImGui::DragFloat("Ambient factor", &_material.ambient_factor, 0.01f)) {
-                        set_material(_material);
+                    if (ImGui::DragFloat("Ambient factor", &_material->ambient_factor, 0.01f)) {
+                        set_material(*_material);
                     }
-                    if (ImGui::DragFloat("Diffuse factor", &_material.diffuse_factor, 0.01f)) {
-                        set_material(_material);
+                    if (ImGui::DragFloat("Diffuse factor", &_material->diffuse_factor, 0.01f)) {
+                        set_material(*_material);
                     }
-                    if (ImGui::DragFloat("Specular factor", &_material.specular_factor, 0.01f)) {
-                        set_material(_material);
+                    if (ImGui::DragFloat("Specular factor", &_material->specular_factor, 0.01f)) {
+                        set_material(*_material);
                     }
-                    if (ImGui::DragFloat("Shininess", &_material.shininess, 0.01f)) {
-                        set_material(_material);
+                    if (ImGui::DragFloat("Shininess", &_material->shininess, 0.01f)) {
+                        set_material(*_material);
                     }
                     ImGui::TreePop();
                 }

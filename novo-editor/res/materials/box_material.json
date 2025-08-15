@@ -1,0 +1,6 @@
+{
+    "ambient_factor": 0.5,
+    "diffuse_factor": 10.0,
+    "specular_factor": 1.5,
+    "shininess": 32.0
+}

@@ -10,22 +10,27 @@
 #include <map>
 
 #include "stb_image.h"
+#include "json.hpp"
 
 #include <novo-core/Texture2D.hpp>
 #include <novo-core/Shader.hpp>
+#include <novo-core/Material.hpp>
 
 namespace Novo {
     using Byte = char;
     using Image = unsigned Byte*;
+    using Json = nlohmann::json;
 
     class Resources {
     private:
         using TexturesMap = std::map<std::string, std::shared_ptr<Texture2D>>;
         using ShadersMap = std::map<std::string, std::shared_ptr<Shader>>;
+        using MaterialsMap = std::map<std::string, std::shared_ptr<Material>>;
 
         std::string _exePath;
         TexturesMap _texturesMap;
         ShadersMap _shadersMap;
+        MaterialsMap _materialsMap;
     public:
         Resources(const std::string& exePath) {
             size_t found = exePath.find_last_of("/\\");
@@ -99,12 +104,44 @@ namespace Novo {
             }
         }
 
+        std::shared_ptr<Material> loadMaterial(const std::string& name, const std::string& path) {
+            if (_materialsMap.find(name) != _materialsMap.end()) {
+                return _materialsMap[name];
+            } else {
+                Json json = Json::parse(getFileStr(path));
+                auto new_material = std::make_shared<Material>();
+                new_material->ambient_factor = json["ambient_factor"];
+                new_material->diffuse_factor = json["diffuse_factor"];
+                new_material->specular_factor = json["specular_factor"];
+                new_material->shininess = json["shininess"];
+                _materialsMap[name] = new_material;
+                return new_material;
+            }
+        }
+
+        void addMaterial(const std::string& name, std::shared_ptr<Material> material) {
+            _materialsMap[name] = material;
+        }
+
+        std::shared_ptr<Material> getMaterial(const std::string& name) {
+            if (_materialsMap.find(name) != _materialsMap.end()) {
+                return _materialsMap[name];
+            } else {
+                std::cerr << "Failed to find material " << name << std::endl;
+                return nullptr;
+            }
+        }
+
         TexturesMap& getTexturesMap() {
             return _texturesMap;
         }
 
         ShadersMap& getShadersMap() {
             return _shadersMap;
+        }
+
+        MaterialsMap& getMaterialsMap() {
+            return _materialsMap;
         }
     };
 }
