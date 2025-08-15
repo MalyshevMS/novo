@@ -24,7 +24,8 @@ void main() {
     // Diffuse
     vec3 normal = normalize(frag_normal);
     vec3 light_dir = normalize(light_position - frag_position);
-    vec3 diffuse = diffuse_factor * light_color * max(dot(normal, light_dir), 0.f);
+    float distance_factor = 1 / distance(light_position, frag_position) / distance(light_position, frag_position);
+    vec3 diffuse = distance_factor * diffuse_factor * light_color * max(dot(normal, light_dir), 0.f);
 
     // Specular
     vec3 view_dir = normalize(camera_position - frag_position);

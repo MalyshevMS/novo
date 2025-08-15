@@ -14,6 +14,20 @@
 
 
 namespace Novo {
+    struct Material {
+        float ambient_factor = 0.1f;
+        float diffuse_factor = 10.f;
+        float specular_factor = 1.f;
+        float shininess = 32.f;
+
+        Material(float ambient_factor = 0.1f, float diffuse_factor = 10.f, float specular_factor = 1.f, float shininess = 32.f) {
+            this->ambient_factor = ambient_factor;
+            this->diffuse_factor = diffuse_factor;
+            this->specular_factor = specular_factor;
+            this->shininess = shininess;
+        }
+    };
+
     namespace Mesh {
         class MeshBase {
         protected:
@@ -29,15 +43,19 @@ namespace Novo {
             glm::vec3 _rotation;
 
             glm::vec2 _uv = glm::vec2(1.f, 1.f);
+
+            Material _material;
         public:
             /// @warning Don't forget to initialize _vao, _vbo and _ibo
-            MeshBase(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0)) {
+            MeshBase(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0), Material material = Material()) {
                 _texture = texture;
                 _shader = shader;
 
                 _position = position;
                 _size = size;
                 _rotation = rotation;
+
+                _material = material;
             };
 
             virtual void draw() {
@@ -54,6 +72,13 @@ namespace Novo {
 
                 _shader->setUniform("model", model);
                 _shader->setUniform("view_projection", CurrentCamera::get_view_proj_matrix());
+
+                _shader->setUniform("camera_position", Novo::CurrentCamera::get_position());
+
+                _shader->setUniform("ambient_factor", _material.ambient_factor);
+                _shader->setUniform("diffuse_factor", _material.diffuse_factor);
+                _shader->setUniform("specular_factor", _material.specular_factor);
+                _shader->setUniform("shininess", _material.shininess);
 
                 _vao->draw();
                 _shader->unload();
@@ -73,6 +98,10 @@ namespace Novo {
                 _rotation = rotation;
             }
 
+            virtual void set_material(Material material) {
+                _material = material;
+            }
+
             virtual void draw_ui(const std::string& tab_name) {
                 if (!ImGui::TreeNode(tab_name.c_str())) return;
                 if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
@@ -86,6 +115,21 @@ namespace Novo {
                 }
                 if (ImGui::DragFloat2("UV", glm::value_ptr(_uv), 0.1f)) {
                     set_uv(_uv);
+                }
+                if (ImGui::TreeNode("Material")) {
+                    if (ImGui::DragFloat("Ambient factor", &_material.ambient_factor, 0.01f)) {
+                        set_material(_material);
+                    }
+                    if (ImGui::DragFloat("Diffuse factor", &_material.diffuse_factor, 0.01f)) {
+                        set_material(_material);
+                    }
+                    if (ImGui::DragFloat("Specular factor", &_material.specular_factor, 0.01f)) {
+                        set_material(_material);
+                    }
+                    if (ImGui::DragFloat("Shininess", &_material.shininess, 0.01f)) {
+                        set_material(_material);
+                    }
+                    ImGui::TreePop();
                 }
                 ImGui::TreePop();
             }

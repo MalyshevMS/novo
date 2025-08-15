@@ -43,12 +43,13 @@
 
 namespace Novo {
     namespace Mesh {
-        class Box : public MeshBase {
+        class LightSource : public MeshBase {
         private:
-            bool _inverse = false;
+            glm::vec3 _light_color;
+            std::shared_ptr<Novo::Shader> _obj_shader;
         public:
-            Box(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
-               : MeshBase(std::move(texture), std::move(shader), position, size, rotation) {
+            LightSource(const glm::vec3& light_color, std::shared_ptr<Novo::Shader> light_shader, std::shared_ptr<Novo::Shader> obj_shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
+               : MeshBase(std::make_shared<Texture2D>(Texture2D(nullptr, glm::vec2(0), 3)), std::move(light_shader), position, size, rotation), _light_color(light_color), _obj_shader(std::move(obj_shader)) {
                 GLfloat vertices_uv[] = VERTIECES_NORMAL_UV;
 
                 GLuint indices[] = {
@@ -70,14 +71,52 @@ namespace Novo {
 
             virtual void draw() override {
                 glEnable(GL_CULL_FACE);
-                if (!_inverse) glCullFace(GL_FRONT);
-                else glCullFace(GL_BACK);
+                glCullFace(GL_FRONT);
                 glFrontFace(GL_CCW);
-                MeshBase::draw();
+
+                _shader->load(); // light shader
+                _texture->bind(0);
+                glm::mat4 model = glm::mat4(1.f);
+                glm::mat4 translate = glm::translate(model, _position);
+                glm::mat4 rotate_x = glm::rotate(glm::mat4(1.f), glm::radians(_rotation.x), glm::vec3(1.f, 0.f, 0.f));
+                glm::mat4 rotate_y = glm::rotate(glm::mat4(1.f), glm::radians(_rotation.y), glm::vec3(0.f, 1.f, 0.f));
+                glm::mat4 rotate_z = glm::rotate(glm::mat4(1.f), glm::radians(_rotation.z), glm::vec3(0.f, 0.f, 1.f));
+                glm::mat4 scale = glm::scale(model, _size);
+
+                model = translate * rotate_x * rotate_y * rotate_z * scale;
+
+                _shader->setUniform("model", model);
+                _shader->setUniform("view_projection", CurrentCamera::get_view_proj_matrix());
+                _shader->setUniform("light_color", _light_color);
+
+                _vao->draw();
+                _shader->unload();
+
+                _obj_shader->load(); // object shader
+                _obj_shader->setUniform("light_color", _light_color);
+                _obj_shader->setUniform("light_position", _position);
+                _obj_shader->unload();
             }
 
-            void inverse() {
-                _inverse = !_inverse;
+            void set_light_color(glm::vec3 light_color) {
+                _light_color = light_color;
+            }
+
+            virtual void draw_ui(const std::string& tab_name) override {
+                if (!ImGui::TreeNode(tab_name.c_str())) return;
+                if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
+                    set_position(_position);
+                }
+                if (ImGui::DragFloat3("Rotation", glm::value_ptr(_rotation), 0.1f)) {
+                    set_rotation(_rotation);
+                }
+                if (ImGui::DragFloat3("Size", glm::value_ptr(_size), 0.1f)) {
+                    set_size(_size);
+                }
+                if (ImGui::ColorEdit3("Light color", glm::value_ptr(_light_color))) {
+                    set_light_color(_light_color);
+                }
+                ImGui::TreePop();
             }
 
             virtual void set_uv(glm::vec2 uv) override {
@@ -92,41 +131,6 @@ namespace Novo {
                 
                 _vao->addVBO(*_vbo);
                 _vao->setIBO(*_ibo);
-            }
-
-            virtual void draw_ui(const std::string& tab_name) {
-                if (!ImGui::TreeNode(tab_name.c_str())) return;
-                if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
-                    set_position(_position);
-                }
-                if (ImGui::DragFloat3("Rotation", glm::value_ptr(_rotation), 0.1f)) {
-                    set_rotation(_rotation);
-                }
-                if (ImGui::DragFloat3("Size", glm::value_ptr(_size), 0.1f)) {
-                    set_size(_size);
-                }
-                if (ImGui::DragFloat2("UV", glm::value_ptr(_uv), 0.1f)) {
-                    set_uv(_uv);
-                }
-                if (ImGui::TreeNode("Material")) {
-                    if (ImGui::DragFloat("Ambient factor", &_material.ambient_factor, 0.01f)) {
-                        set_material(_material);
-                    }
-                    if (ImGui::DragFloat("Diffuse factor", &_material.diffuse_factor, 0.01f)) {
-                        set_material(_material);
-                    }
-                    if (ImGui::DragFloat("Specular factor", &_material.specular_factor, 0.01f)) {
-                        set_material(_material);
-                    }
-                    if (ImGui::DragFloat("Shininess", &_material.shininess, 0.01f)) {
-                        set_material(_material);
-                    }
-                    ImGui::TreePop();
-                }
-                if (ImGui::Button("Inverse")) {
-                    inverse();
-                }
-                ImGui::TreePop();
             }
         };
     }

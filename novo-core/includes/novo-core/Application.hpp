@@ -14,6 +14,7 @@
 #include <novo-core/Mesh/Box.hpp>
 #include <novo-core/Mesh/Plane.hpp>
 #include <novo-core/Mesh/Triangle.hpp>
+#include <novo-core/Mesh/LightSource.hpp>
 
 namespace Novo {
     class Application {
