@@ -3,13 +3,16 @@
 #include <novo-core/Mesh/MeshBase.hpp>
 #include <novo-core/Mesh/Box.hpp>
 #include <novo-core/Mesh/Plane.hpp>
+#include <novo-core/Mesh/LightSource.hpp>
 #include <vector>
 
 namespace Novo {
     class Scene {
     private:
         using ObjPair = std::pair<std::shared_ptr<Novo::Mesh::MeshBase>, std::string>;
+        using LightPair = std::pair<std::shared_ptr<Novo::Mesh::LightSource>, std::string>;
         std::vector<ObjPair> _objects = {};
+        std::vector<LightPair> _lights = {};
         std::shared_ptr<Novo::Resources> _resources;
     public:
         Scene(std::shared_ptr<Novo::Resources> resources) {
@@ -30,6 +33,22 @@ namespace Novo {
 
         void add_object(const std::shared_ptr<Novo::Mesh::MeshBase>& obj, const std::string& name) {
             _objects.push_back(ObjPair(obj, name));
+        }
+
+        void add_light(const Novo::Mesh::LightSource& light) {
+            _lights.push_back(LightPair(std::make_shared<Novo::Mesh::LightSource>(light), "Light #" + std::to_string(_lights.size())));
+        }
+
+        void add_light(const std::shared_ptr<Novo::Mesh::LightSource>& light) {
+            _lights.push_back(LightPair(light, "Light #" + std::to_string(_lights.size())));
+        }
+
+        void add_light(const Novo::Mesh::LightSource& light, const std::string& name) {
+            _lights.push_back(LightPair(std::make_shared<Novo::Mesh::LightSource>(light), name));
+        }
+
+        void add_light(const std::shared_ptr<Novo::Mesh::LightSource>& light, const std::string& name) {
+            _lights.push_back(LightPair(light, name));
         }
 
         void reload_all() {
@@ -156,6 +175,13 @@ namespace Novo {
 
         void render() {
             for (auto& obj : _objects) {
+                for (int i = 0; i < _lights.size(); ++i) {
+                    _lights[i].first->draw();
+                    obj.first->get_shader()->load();
+                    obj.first->get_shader()->insertUniformArray("light_colors", _lights[i].first->get_light_color(), i);
+                    obj.first->get_shader()->insertUniformArray("light_positions", _lights[i].first->get_position(), i);
+                    obj.first->get_shader()->unload();
+                }
                 obj.first->draw();
             }
         }

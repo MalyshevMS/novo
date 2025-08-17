@@ -20,7 +20,8 @@ private:
 
     std::unique_ptr<Novo::Scene> p_scene = nullptr;
 
-    std::unique_ptr<Novo::Mesh::LightSource> p_light = nullptr;
+    std::shared_ptr<Novo::Mesh::LightSource> p_light = nullptr;
+    std::shared_ptr<Novo::Mesh::LightSource> p_light1 = nullptr;
 
     glm::vec4 g_bgColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.f);
 
@@ -40,7 +41,7 @@ public:
 
         p_camera = std::make_shared<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
         
-        p_shader = p_resources->loadShader("ObjShader", "res/shaders/vertex.glsl", "res/shaders/fragment.glsl");
+        p_shader = p_resources->loadShader("ObjShader", "res/shaders/object.vert", "res/shaders/object.frag");
         p_light_shader = p_resources->loadShader("LightSource", "res/shaders/light_source.vert", "res/shaders/light_source.frag");
         p_material = p_resources->loadMaterial("BoxMaterial",  "res/materials/box_material.json");
 
@@ -64,7 +65,11 @@ public:
         
         p_scene->reload_all();
 
-        p_light = std::make_unique<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, p_shader);
+        p_light = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, p_shader);
+        p_light1 = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, p_shader, glm::vec3(0.f, 3.f, 0.f));
+
+        p_scene->add_light(p_light, "Light 1");
+        p_scene->add_light(p_light1, "Light 2");
     }
 
     virtual void on_update() override {
@@ -75,7 +80,6 @@ public:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             p_scene->render();
-            p_light->draw();
 
             key_pressed();
             debug();
@@ -180,6 +184,7 @@ public:
             ImGui::Begin("Light");
             ImGui::SetWindowFontScale(1.5f);
             p_light->draw_ui("Light 1");
+            p_light1->draw_ui("Light 2");
             ImGui::End();
 
             p_scene->draw_ui();

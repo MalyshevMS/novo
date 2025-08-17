@@ -85,6 +85,12 @@ namespace Novo {
                 _rotation = rotation;
             }
 
+            virtual glm::vec3 get_position() { return _position; }
+            virtual glm::vec3 get_size() { return _size; }
+            virtual glm::vec3 get_rotation() { return _rotation; }
+
+            virtual std::shared_ptr<Shader> get_shader() { return _shader; }
+
             virtual void set_material(const Material& material) {
                 *_material = material;
             }

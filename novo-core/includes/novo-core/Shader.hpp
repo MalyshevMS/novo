@@ -122,5 +122,18 @@ namespace Novo {
         void setUniform(const std::string& name, const glm::mat4& matrix) {
             glUniformMatrix4fv(glGetUniformLocation(_shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
         }
+
+        template<typename T>
+        void setUniformArray(const std::string& name, const T* values, const GLsizei count) {
+            for (int i = 0; i < count; i++) {
+                std::string index = std::to_string(i);
+                setUniform(name + "[" + index + "]", values[i]);
+            }
+        }
+
+        template<typename T>
+        void insertUniformArray(const std::string& name, const T& value, const GLsizei index) {
+            setUniform(name + "[" + std::to_string(index) + "]", value);
+        }
     };
 }

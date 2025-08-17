@@ -102,6 +102,8 @@ namespace Novo {
                 _light_color = light_color;
             }
 
+            glm::vec3 get_light_color() { return _light_color; }
+
             virtual void draw_ui(const std::string& tab_name) override {
                 if (!ImGui::TreeNode(tab_name.c_str())) return;
                 if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
