@@ -126,6 +126,7 @@ namespace Novo {
                 if (ImGui::Button("Inverse")) {
                     inverse();
                 }
+                ImGui::Checkbox("Show", &_draw);
                 ImGui::TreePop();
             }
         };

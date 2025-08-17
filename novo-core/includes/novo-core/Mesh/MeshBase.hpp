@@ -32,6 +32,8 @@ namespace Novo {
             glm::vec2 _uv = glm::vec2(1.f, 1.f);
 
             std::shared_ptr<Material> _material;
+
+            bool _draw = true;
         public:
             /// @warning Don't forget to initialize _vao, _vbo and _ibo
             MeshBase(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, std::shared_ptr<Material> material, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0)) {
@@ -46,6 +48,7 @@ namespace Novo {
             };
 
             virtual void draw() {
+                if (!_draw) return;
                 _shader->load();
                 _texture->bind(0);
                 glm::mat4 model = glm::mat4(1.f);
@@ -95,6 +98,18 @@ namespace Novo {
                 *_material = material;
             }
 
+            virtual void show(bool draw = true) {
+                _draw = draw;
+            }
+            
+            virtual void hide(bool draw = false) {
+                _draw = draw;
+            }
+
+            virtual bool is_visible() {
+                return _draw;
+            }
+
             virtual void draw_ui(const std::string& tab_name) {
                 if (!ImGui::TreeNode(tab_name.c_str())) return;
                 if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
@@ -124,6 +139,7 @@ namespace Novo {
                     }
                     ImGui::TreePop();
                 }
+                ImGui::Checkbox("Show", &_draw);
                 ImGui::TreePop();
             }
 

@@ -69,6 +69,7 @@ namespace Novo {
             }
 
             virtual void draw() override {
+                if (!_draw) return;
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_FRONT);
                 glFrontFace(GL_CCW);
@@ -112,6 +113,7 @@ namespace Novo {
                 if (ImGui::ColorEdit3("Light color", glm::value_ptr(_light_color))) {
                     set_light_color(_light_color);
                 }
+                ImGui::Checkbox("Show", &_draw);
                 ImGui::TreePop();
             }
 
