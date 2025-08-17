@@ -65,8 +65,8 @@ public:
         
         p_scene->reload_all();
 
-        p_light = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, p_shader);
-        p_light1 = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, p_shader, glm::vec3(0.f, 3.f, 0.f));
+        p_light = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader);
+        p_light1 = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, glm::vec3(0.f, 3.f, 0.f));
 
         p_scene->add_light(p_light, "Light 1");
         p_scene->add_light(p_light1, "Light 2");
@@ -179,12 +179,6 @@ public:
             if (ImGui::Button("Reset Rotation")) {
                 p_camera->set_rotation(glm::vec3(0.f, 0.f, 0.f));
             }
-            ImGui::End();
-
-            ImGui::Begin("Light");
-            ImGui::SetWindowFontScale(1.5f);
-            p_light->draw_ui("Light 1");
-            p_light1->draw_ui("Light 2");
             ImGui::End();
 
             p_scene->draw_ui();

@@ -59,15 +59,29 @@ namespace Novo {
 
         void draw_ui() {
             ImGui::Begin("Scene");
+            ImGui::Text("Objects");
+            ImGui::Separator();
             ImGui::SetWindowFontScale(1.5f);
             for (auto& obj : _objects) {
                 obj.first->draw_ui(obj.second);
             }
+            ImGui::Separator();
+            ImGui::Text("Lights");
+            ImGui::Separator();
+            for (auto& light : _lights) {
+                light.first->draw_ui(light.second);
+            }
+            ImGui::Separator();
+
             static bool isAddingObject = false;
+            static bool isAddingLight = false;
             static bool isAddingMaterial = false;
 
             if (ImGui::Button("Add object...")) {
                 isAddingObject = true;
+            }
+            if (ImGui::Button("Add light...")) {
+                isAddingLight = true;
             }
             if (ImGui::Button("Add material...")) {
                 isAddingMaterial = true;
@@ -139,7 +153,40 @@ namespace Novo {
                 }
                 ImGui::End();
             }
+            if (isAddingLight) {
+                static std::string name = "";
+                static std::vector<char> buffer(256);
+                static glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
+                static std::string shader = "None";
 
+                if (name.size() >= buffer.size()) {
+                    buffer.resize(name.size() + 1);
+                }
+                memcpy(buffer.data(), name.c_str(), name.size() + 1);
+
+                ImGui::Begin("Add Light", &isAddingLight);
+                ImGui::SetWindowFontScale(1.5f);
+                if (ImGui::InputText("Name", buffer.data(), buffer.size())) {
+                    name.assign(buffer.data());
+                }
+                ImGui::ColorEdit3("Color", &color.x);
+                if (ImGui::BeginCombo("Shader", shader.c_str())) {
+                    for (auto& shad : _resources->getShadersMap()) {
+                        if (ImGui::Selectable(shad.first.c_str())) {
+                            shader = shad.first;
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+                if (ImGui::Button("Add")) {
+                    add_light(std::make_shared<Novo::Mesh::LightSource>(color, _resources->getShader(shader)), name);
+                    isAddingLight = false;
+                }
+                if (ImGui::Button("Cancel")) {
+                    isAddingLight = false;
+                }
+                ImGui::End();
+            }
             if (isAddingMaterial) {
                 static std::shared_ptr<Novo::Material> material = std::make_shared<Novo::Material>();
                 static std::string name = "";

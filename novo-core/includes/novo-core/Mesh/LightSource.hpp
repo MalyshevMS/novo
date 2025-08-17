@@ -46,10 +46,9 @@ namespace Novo {
         class LightSource : public MeshBase {
         private:
             glm::vec3 _light_color;
-            std::shared_ptr<Novo::Shader> _obj_shader;
         public:
-            LightSource(const glm::vec3& light_color, std::shared_ptr<Novo::Shader> light_shader, std::shared_ptr<Novo::Shader> obj_shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
-               : MeshBase(std::make_shared<Texture2D>(Texture2D(nullptr, glm::vec2(0), 3)), std::move(light_shader), std::make_shared<Material>(), position, size, rotation), _light_color(light_color), _obj_shader(std::move(obj_shader)) {
+            LightSource(const glm::vec3& light_color, std::shared_ptr<Novo::Shader> light_shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
+               : MeshBase(std::make_shared<Texture2D>(Texture2D(nullptr, glm::vec2(0), 3)), std::move(light_shader), std::make_shared<Material>(), position, size, rotation), _light_color(light_color) {
                 GLfloat vertices_uv[] = VERTIECES_NORMAL_UV;
 
                 GLuint indices[] = {
@@ -74,7 +73,7 @@ namespace Novo {
                 glCullFace(GL_FRONT);
                 glFrontFace(GL_CCW);
 
-                _shader->load(); // light shader
+                _shader->load();
                 _texture->bind(0);
                 glm::mat4 model = glm::mat4(1.f);
                 glm::mat4 translate = glm::translate(model, _position);
@@ -91,11 +90,6 @@ namespace Novo {
 
                 _vao->draw();
                 _shader->unload();
-
-                _obj_shader->load(); // object shader
-                _obj_shader->setUniform("light_color", _light_color);
-                _obj_shader->setUniform("light_position", _position);
-                _obj_shader->unload();
             }
 
             void set_light_color(glm::vec3 light_color) {
