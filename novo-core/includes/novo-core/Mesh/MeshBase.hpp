@@ -7,6 +7,7 @@
 #include <novo-core/Texture2D.hpp>
 #include <novo-core/CurrentCamera.hpp>
 #include <novo-core/Material.hpp>
+#include <novo-core/Mesh/MeshID.hpp>
 
 #include <novo-precompiles/Layouts.h>
 
@@ -22,8 +23,11 @@ namespace Novo {
             Novo::VBO* _vbo = nullptr;
             Novo::IBO* _ibo = nullptr;
 
+            static constexpr Novo::MeshID _id = Novo::MeshID::MeshBase;
+
             std::shared_ptr<Novo::Shader> _shader = nullptr;
             std::shared_ptr<Novo::Texture2D> _texture = nullptr;
+            std::shared_ptr<Material> _material = nullptr;
 
             glm::vec3 _position;
             glm::vec3 _size;
@@ -31,7 +35,6 @@ namespace Novo {
 
             glm::vec2 _uv = glm::vec2(1.f, 1.f);
 
-            std::shared_ptr<Material> _material;
 
             bool _draw = true;
         public:
@@ -91,6 +94,7 @@ namespace Novo {
             virtual glm::vec3 get_position() { return _position; }
             virtual glm::vec3 get_size() { return _size; }
             virtual glm::vec3 get_rotation() { return _rotation; }
+            static Novo::MeshID get_id() { return _id; }
 
             virtual std::shared_ptr<Shader> get_shader() { return _shader; }
 
@@ -139,7 +143,6 @@ namespace Novo {
                     ImGui::TreePop();
                 }
                 ImGui::Checkbox("Show", &_draw);
-                // ImGui::TreePop();
             }
 
             virtual void reload() {
