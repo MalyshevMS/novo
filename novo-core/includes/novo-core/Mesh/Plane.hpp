@@ -18,6 +18,8 @@
 namespace Novo {
     namespace Mesh {
         class Plane : public MeshBase {
+        private:
+            bool _one_side = false;
         public:
             Plane(std::shared_ptr<Novo::Texture2D> texture, std::shared_ptr<Novo::Shader> shader, std::shared_ptr<Material> material, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
             : MeshBase(std::move(texture), std::move(shader), std::move(material), position, size, rotation) {
@@ -39,9 +41,35 @@ namespace Novo {
                 _vao->setIBO(*_ibo);
             }
 
+            void change_side_mode() {
+                if (_one_side) {
+                    delete _ibo;
+                    GLuint indices[] = {
+                        0, 1, 2,
+                        0, 2, 3,
+                    };
+
+                    _ibo = new Novo::IBO(indices, sizeof(indices) / sizeof(GLuint));
+                } else {
+                    delete _ibo;
+                    GLuint indices[] = {
+                        0, 1, 2,
+                        0, 2, 3,
+
+                        4, 5, 6,
+                        4, 6, 7,
+                    };
+
+                    _ibo = new Novo::IBO(indices, sizeof(indices) / sizeof(GLuint));
+                }
+            }
+
             virtual void draw_ui(const std::string& tab_name) override {
                 if (!ImGui::TreeNode(tab_name.c_str())) return;
                 MeshBase::draw_ui(tab_name);
+                if (ImGui::Checkbox("One side", &_one_side)) {
+                    change_side_mode();
+                }
                 ImGui::TreePop();
             }
 
