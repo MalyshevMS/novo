@@ -223,6 +223,12 @@ namespace Novo {
         void render() {
             for (auto& obj : _objects) {
                 for (int i = 0; i < _lights.size(); ++i) {
+                    if (!_lights[i].first->is_visible()) {
+                        obj.first->get_shader()->load();
+                        obj.first->get_shader()->insertUniformArray("light_colors", glm::vec3(0.f), i);
+                        obj.first->get_shader()->unload();
+                        continue;
+                    }
                     _lights[i].first->draw();
                     obj.first->get_shader()->load();
                     obj.first->get_shader()->insertUniformArray("light_colors", _lights[i].first->get_light_color(), i);
