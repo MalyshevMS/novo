@@ -101,19 +101,10 @@ namespace Novo {
 
             virtual void draw_ui(const std::string& tab_name) override {
                 if (!ImGui::TreeNode(tab_name.c_str())) return;
-                if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
-                    set_position(_position);
-                }
-                if (ImGui::DragFloat3("Rotation", glm::value_ptr(_rotation), 0.1f)) {
-                    set_rotation(_rotation);
-                }
-                if (ImGui::DragFloat3("Size", glm::value_ptr(_size), 0.1f)) {
-                    set_size(_size);
-                }
+                MeshBase::draw_ui(tab_name);
                 if (ImGui::ColorEdit3("Light color", glm::value_ptr(_light_color))) {
                     set_light_color(_light_color);
                 }
-                ImGui::Checkbox("Show", &_draw);
                 ImGui::TreePop();
             }
 

@@ -111,7 +111,6 @@ namespace Novo {
             }
 
             virtual void draw_ui(const std::string& tab_name) {
-                if (!ImGui::TreeNode(tab_name.c_str())) return;
                 if (ImGui::DragFloat3("Position", glm::value_ptr(_position), 0.1f)) {
                     set_position(_position);
                 }
@@ -140,7 +139,7 @@ namespace Novo {
                     ImGui::TreePop();
                 }
                 ImGui::Checkbox("Show", &_draw);
-                ImGui::TreePop();
+                // ImGui::TreePop();
             }
 
             virtual void reload() {
