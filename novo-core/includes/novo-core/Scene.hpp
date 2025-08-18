@@ -76,6 +76,7 @@ namespace Novo {
             static bool isAddingObject = false;
             static bool isAddingLight = false;
             static bool isAddingMaterial = false;
+            static bool isAddingShader = false;
 
             if (ImGui::Button("Add object...")) {
                 isAddingObject = true;
@@ -85,6 +86,9 @@ namespace Novo {
             }
             if (ImGui::Button("Add material...")) {
                 isAddingMaterial = true;
+            }
+            if (ImGui::Button("Add shader...")) {
+                isAddingShader = true;
             }
 
             if (isAddingObject) {
@@ -214,6 +218,49 @@ namespace Novo {
                     isAddingMaterial = false;
                 }
 
+                ImGui::End();
+            }
+            if (isAddingShader) {
+                static std::string name = "";
+                static std::vector<char> buffer_name(256);
+                static std::string vertex_path = "";
+                static std::vector<char> buffer_vertex(256);
+                static std::string fragment_path = "";
+                static std::vector<char> buffer_fragment(256);
+
+                if (name.size() >= buffer_name.size()) {
+                    buffer_name.resize(name.size() + 1);
+                }
+                memcpy(buffer_name.data(), name.c_str(), name.size() + 1);
+
+                if (vertex_path.size() >= buffer_vertex.size()) {
+                    buffer_vertex.resize(vertex_path.size() + 1);
+                }
+                memcpy(buffer_vertex.data(), vertex_path.c_str(), vertex_path.size() + 1);
+
+                if (fragment_path.size() >= buffer_fragment.size()) {
+                    buffer_fragment.resize(fragment_path.size() + 1);
+                }
+                memcpy(buffer_fragment.data(), fragment_path.c_str(), fragment_path.size() + 1);
+
+                ImGui::Begin("Add shader", &isAddingShader);
+                ImGui::SetWindowFontScale(1.5f);
+                if (ImGui::InputText("Name", buffer_name.data(), buffer_name.size())) {
+                    name.assign(buffer_name.data());
+                }
+                if (ImGui::InputText("Vertex path", buffer_vertex.data(), buffer_vertex.size())) {
+                    vertex_path.assign(buffer_vertex.data());
+                }
+                if (ImGui::InputText("Fragment path", buffer_fragment.data(), buffer_fragment.size())) {
+                    fragment_path.assign(buffer_fragment.data());
+                }
+                if (ImGui::Button("Add")) {
+                    _resources->loadShader(name, vertex_path, fragment_path);
+                    isAddingShader = false;
+                }
+                if (ImGui::Button("Cancel")) {
+                    isAddingShader = false;
+                }
                 ImGui::End();
             }
 
