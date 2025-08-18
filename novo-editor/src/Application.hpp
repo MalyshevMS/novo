@@ -38,33 +38,13 @@ public:
         p_window->setMaximized(true);
 
         p_resources = std::make_shared<Novo::Resources>(argv[0]);
-
         p_camera = std::make_shared<Novo::Camera>(c_pos, c_rot, Novo::Camera::CameraType::Perspective, c_fov, p_window->getAspectRatio());
-        
-        p_shader = p_resources->loadShader("ObjShader", "res/shaders/object.vert", "res/shaders/object.frag");
-        p_light_shader = p_resources->loadShader("LightSource", "res/shaders/light_source.vert", "res/shaders/light_source.frag");
-        p_material = p_resources->loadMaterial("BoxMaterial",  "res/materials/box_material.json");
-
-        p_debugger = std::make_unique<Debugger>(*p_window);
-
         Novo::CurrentCamera::set_camera(p_camera);
-
-        auto test_texture = p_resources->loadTexture("TestTexture", "res/textures/texture.png");
-        auto box_texture = p_resources->loadTexture("Box", "res/textures/box_texture.png");
-        auto grass_texture = p_resources->loadTexture("Grass", "res/textures/grass.png");
-
-        test_texture->setMagFilter(GL_NEAREST);
-        
+        p_debugger = std::make_unique<Debugger>(*p_window);
         p_scene = std::make_unique<Novo::Scene>(p_resources);
-
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(4.f, 0.f, 0.f)), "Box 1");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(8.f, 0.f, 0.f)), "Box 2");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Plane>(box_texture, p_shader, p_material, glm::vec3(0.f, -2.f, 0.f)), "Plane 1");
+        
+        p_scene->load_from_json("res/scenes/scene0.json");
         p_scene->reload_all();
-
-        p_light = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader);
-
-        p_scene->add_light(p_light, "Light 1");
     }
 
     virtual void on_update() override {
@@ -168,7 +148,7 @@ public:
             ImGui::DragFloat("Speed", &c_speed, 0.01f, 0.f, 10.f, "%.2f");
 
             if (ImGui::Button("Reset Position")) {
-                p_camera->set_position(glm::vec3(0.f, 0.f, -1.f));
+                p_camera->set_position(glm::vec3(0.f, 2.f, -3.f));
             }
 
             if (ImGui::Button("Reset Rotation")) {

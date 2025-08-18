@@ -14,9 +14,56 @@ namespace Novo {
         std::vector<ObjPair> _objects = {};
         std::vector<LightPair> _lights = {};
         std::shared_ptr<Novo::Resources> _resources;
+        std::string _name = "Scene";
     public:
         Scene(std::shared_ptr<Novo::Resources> resources) {
             _resources = resources;
+        }
+
+        Scene& load_from_json(const std::string& path) {
+            Json json = Json::parse(_resources->getFileStr(path));
+
+            _name = json["name"];
+            
+            std::vector<Json> shaders = json["shaders"];
+            for (auto& shader : shaders) {
+                _resources->loadShader(shader["name"], shader["vs"], shader["fs"]);
+            }
+
+            std::vector<Json> materials = json["materials"];
+            for (auto& material : materials) {
+                _resources->loadMaterial(material["name"], material["path"]);
+            }
+
+            std::vector<Json> textures = json["textures"];
+            for (auto& texture : textures) {
+                _resources->loadTexture(texture["name"], texture["path"]);
+            }
+
+            std::vector<Json> objects = json["objects"];
+            for (auto& obj : objects) {
+                auto shader = _resources->getShader(obj["shader"]);
+
+                glm::vec3 position = glm::vec3(obj["transform"]["position"]["x"], obj["transform"]["position"]["y"], obj["transform"]["position"]["z"]);
+                glm::vec3 rotation = glm::vec3(obj["transform"]["rotation"]["x"], obj["transform"]["rotation"]["y"], obj["transform"]["rotation"]["z"]);
+                glm::vec3 scale    = glm::vec3(obj["transform"]["scale"]   ["x"], obj["transform"]["scale"]   ["y"], obj["transform"]["scale"]   ["z"]);
+                if (obj["type.id"] == Novo::MeshID::Box) {
+                    auto material = _resources->getMaterial(obj["material"]);
+                    auto texture = _resources->getTexture(obj["texture"]);
+                    add_object(std::make_shared<Novo::Mesh::Box>(texture, shader, material, position, scale, rotation), obj["name"]);
+                } else if (obj["type.id"] == Novo::MeshID::Plane) {
+                    auto material = _resources->getMaterial(obj["material"]);
+                    auto texture = _resources->getTexture(obj["texture"]);
+                    add_object(std::make_shared<Novo::Mesh::Plane>(texture, shader, material, position, scale, rotation), obj["name"]);
+                } else if (obj["type.id"] == Novo::MeshID::Light) {
+                    Json properties = obj["other"]["Light"];
+                    glm::vec3 color = glm::vec3(properties["color"]["r"], properties["color"]["g"], properties["color"]["b"]);
+
+                    add_light(std::make_shared<Novo::Mesh::LightSource>(color, shader, position, scale, rotation), obj["name"]);
+                }
+            }
+
+            return *this;
         }
 
         void add_object(const Novo::Mesh::MeshBase& obj) {
@@ -58,7 +105,7 @@ namespace Novo {
         }
 
         void draw_ui() {
-            ImGui::Begin("Scene");
+            ImGui::Begin(_name.c_str());
             ImGui::Text("Objects");
             ImGui::Separator();
             ImGui::SetWindowFontScale(1.5f);
