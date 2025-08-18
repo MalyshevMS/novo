@@ -8,6 +8,11 @@
     1, 0, -1,  0.0, 1.0, 0.0,      0.f,     0.f,   \
     1,  0, 1,  0.0, 1.0, 0.0,      0.f,     _uv.y, \
     -1, 0, 1,  0.0, 1.0, 0.0,      _uv.x,   _uv.y, \
+\
+    -1, 0, 1,  0.0,-1.0, 0.0,      _uv.x,   _uv.y, \
+    1,  0, 1,  0.0,-1.0, 0.0,      0.f,     _uv.y, \
+    1, 0, -1,  0.0,-1.0, 0.0,      0.f,     0.f,   \
+    -1, 0, -1, 0.0,-1.0, 0.0,      _uv.x,   0.f,   \
 }
 
 namespace Novo {
@@ -20,7 +25,10 @@ namespace Novo {
 
                 GLuint indices[] = {
                     0, 1, 2,
-                    0, 2, 3
+                    0, 2, 3,
+
+                    4, 5, 6,
+                    4, 6, 7,
                 };
 
                 _vbo = new Novo::VBO(vertices_uv, sizeof(vertices_uv), Novo::Layout::l_texture);
@@ -29,11 +37,6 @@ namespace Novo {
                 
                 _vao->addVBO(*_vbo);
                 _vao->setIBO(*_ibo);
-            }
-
-            virtual void draw() override {
-                glDisable(GL_CULL_FACE);
-                MeshBase::draw();
             }
 
             virtual void set_uv(glm::vec2 uv) override {

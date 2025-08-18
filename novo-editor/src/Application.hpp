@@ -57,19 +57,14 @@ public:
         
         p_scene = std::make_unique<Novo::Scene>(p_resources);
 
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3( 4.f,  0.f,  0.f)), "Box 1");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(-3.f, -1.f,  1.f)), "Box 2");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(-1.f,  5.f, -3.f)), "Box 3");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3( 2.f, -4.f, -1.f)), "Box 4");
-        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3( 3.f, -4.f, -5.f)), "Box 5");
-        
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(4.f, 0.f, 0.f)), "Box 1");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Box>(box_texture, p_shader, p_material, glm::vec3(8.f, 0.f, 0.f)), "Box 2");
+        p_scene->add_object(std::make_shared<Novo::Mesh::Plane>(box_texture, p_shader, p_material, glm::vec3(0.f, -2.f, 0.f)), "Plane 1");
         p_scene->reload_all();
 
         p_light = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader);
-        p_light1 = std::make_shared<Novo::Mesh::LightSource>(glm::vec3(1.f), p_light_shader, glm::vec3(0.f, 3.f, 0.f));
 
         p_scene->add_light(p_light, "Light 1");
-        p_scene->add_light(p_light1, "Light 2");
     }
 
     virtual void on_update() override {
