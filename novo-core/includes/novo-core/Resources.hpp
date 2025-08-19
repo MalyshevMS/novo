@@ -27,10 +27,19 @@ namespace Novo {
         using ShadersMap = std::map<std::string, std::shared_ptr<Shader>>;
         using MaterialsMap = std::map<std::string, std::shared_ptr<Material>>;
 
+        using FragVertPaths = std::pair<std::string, std::string>; // first - vert, second - frag
+        using ShaderPaths = std::map<std::string, FragVertPaths>;  // first - name, second - paths
+        using MaterialsPaths = std::map<std::string, std::string>; // first - name, second - path
+        using TexturesPaths = std::map<std::string, std::string>;  // first - name, second - path
+
         std::string _exePath;
         TexturesMap _texturesMap;
         ShadersMap _shadersMap;
         MaterialsMap _materialsMap;
+
+        ShaderPaths _shaderPaths;
+        MaterialsPaths _materialsPaths;
+        TexturesPaths _texturesPaths;
     public:
         Resources(const std::string& exePath) {
             size_t found = exePath.find_last_of("/\\");
@@ -63,6 +72,8 @@ namespace Novo {
             _texturesMap[name] = std::make_shared<Texture2D>(image, glm::vec2(width, height), channels);
             stbi_image_free(image);
 
+            _texturesPaths[name] = path;
+
             return _texturesMap[name];
         }
 
@@ -91,6 +102,8 @@ namespace Novo {
                     return nullptr;
                 }
                 _shadersMap[name] = new_shader;
+                _shaderPaths[name].first = vertexPath;
+                _shaderPaths[name].second = fragmentPath;
                 return new_shader;
             }
         }
@@ -114,6 +127,8 @@ namespace Novo {
                 new_material->diffuse_factor = json["diffuse_factor"];
                 new_material->specular_factor = json["specular_factor"];
                 new_material->shininess = json["shininess"];
+
+                _materialsPaths[name] = path;
                 _materialsMap[name] = new_material;
                 return new_material;
             }
@@ -132,16 +147,59 @@ namespace Novo {
             }
         }
 
-        TexturesMap& getTexturesMap() {
+        std::string getShaderName(const std::shared_ptr<Shader>& shader) {
+            for (auto& shader_ref : _shadersMap) {
+                if (shader_ref.second == shader) {
+                    return shader_ref.first;
+                }
+            }
+            return "None";
+        }
+
+        std::string getMaterialName(const std::shared_ptr<Material>& material) {
+            for (auto& mat : _materialsMap) {
+                if (mat.second == material) {
+                    return mat.first;
+                }
+            }
+            return "None";
+        }
+
+        std::string getTextureName(const std::shared_ptr<Texture2D>& texture) {
+            for (auto& tex : _texturesMap) {
+                if (tex.second == texture) {
+                    return tex.first;
+                }
+            }
+            return "None";
+        }
+
+        TexturesMap getTexturesMap() {
             return _texturesMap;
         }
 
-        ShadersMap& getShadersMap() {
+        ShadersMap getShadersMap() {
             return _shadersMap;
         }
 
-        MaterialsMap& getMaterialsMap() {
+        MaterialsMap getMaterialsMap() {
             return _materialsMap;
+        }
+
+        ShaderPaths getShaderPaths() {
+            return _shaderPaths;
+        }
+
+        TexturesPaths getTexturesPaths() {
+            return _texturesPaths;
+        }
+
+        MaterialsPaths getMaterialsPaths() {
+            return _materialsPaths;
+        }
+
+        std::string getExePath() {
+            return _exePath;
         }
     };
 }

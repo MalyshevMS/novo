@@ -46,7 +46,6 @@ namespace Novo {
         class LightSource : public MeshBase {
         private:
             glm::vec3 _light_color;
-            static constexpr Novo::MeshID _id = Novo::MeshID::Light;
         public:
             LightSource(const glm::vec3& light_color, std::shared_ptr<Novo::Shader> light_shader, glm::vec3 position = glm::vec3(0), glm::vec3 size = glm::vec3(1), glm::vec3 rotation = glm::vec3(0))
                : MeshBase(std::make_shared<Texture2D>(Texture2D(nullptr, glm::vec2(0), 3)), std::move(light_shader), std::make_shared<Material>(), position, size, rotation), _light_color(light_color) {
@@ -108,6 +107,8 @@ namespace Novo {
                 }
                 ImGui::TreePop();
             }
+
+            virtual const Novo::MeshID get_id() const { return MeshID::Light; }
 
             virtual void set_uv(glm::vec2 uv) override {
                 _uv = uv;

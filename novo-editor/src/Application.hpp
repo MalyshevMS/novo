@@ -43,7 +43,7 @@ public:
         p_debugger = std::make_unique<Debugger>(*p_window);
         p_scene = std::make_unique<Novo::Scene>(p_resources);
         
-        p_scene->load_from_json("res/scenes/scene0.json");
+        p_scene->load_from_json("res/scenes/empty.json");
         p_scene->reload_all();
     }
 

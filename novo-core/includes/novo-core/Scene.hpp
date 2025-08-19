@@ -47,14 +47,19 @@ namespace Novo {
                 glm::vec3 position = glm::vec3(obj["transform"]["position"]["x"], obj["transform"]["position"]["y"], obj["transform"]["position"]["z"]);
                 glm::vec3 rotation = glm::vec3(obj["transform"]["rotation"]["x"], obj["transform"]["rotation"]["y"], obj["transform"]["rotation"]["z"]);
                 glm::vec3 scale    = glm::vec3(obj["transform"]["scale"]   ["x"], obj["transform"]["scale"]   ["y"], obj["transform"]["scale"]   ["z"]);
+                glm::vec2 uv       = glm::vec2(obj["uv.x"], obj["uv.y"]);
                 if (obj["type.id"] == Novo::MeshID::Box) {
                     auto material = _resources->getMaterial(obj["material"]);
                     auto texture = _resources->getTexture(obj["texture"]);
-                    add_object(std::make_shared<Novo::Mesh::Box>(texture, shader, material, position, scale, rotation), obj["name"]);
+                    auto p_obj = std::make_shared<Novo::Mesh::Box>(texture, shader, material, position, scale, rotation);
+                    p_obj->set_uv(uv);
+                    add_object(p_obj, obj["name"]);
                 } else if (obj["type.id"] == Novo::MeshID::Plane) {
                     auto material = _resources->getMaterial(obj["material"]);
                     auto texture = _resources->getTexture(obj["texture"]);
-                    add_object(std::make_shared<Novo::Mesh::Plane>(texture, shader, material, position, scale, rotation), obj["name"]);
+                    auto p_obj = std::make_shared<Novo::Mesh::Plane>(texture, shader, material, position, scale, rotation);
+                    p_obj->set_uv(uv);
+                    add_object(p_obj, obj["name"]);
                 } else if (obj["type.id"] == Novo::MeshID::Light) {
                     Json properties = obj["other"]["Light"];
                     glm::vec3 color = glm::vec3(properties["color"]["r"], properties["color"]["g"], properties["color"]["b"]);
@@ -66,6 +71,114 @@ namespace Novo {
             return *this;
         }
 
+        Json save_to_json(const std::string& path) {
+            Json json;
+            json["name"] = _name;
+            json["shaders"] = Json::array();
+            json["materials"] = Json::array();
+            json["textures"] = Json::array();
+            json["objects"] = Json::array();
+
+            for (auto& shader : _resources->getShadersMap()) {
+                Json shaderJson;
+                shaderJson["name"] = shader.first;
+                shaderJson["vs"] = _resources->getShaderPaths()[shader.first].first;
+                shaderJson["fs"] = _resources->getShaderPaths()[shader.first].second;
+                json["shaders"].push_back(shaderJson);
+            }
+
+            for (auto& material : _resources->getMaterialsMap()) {
+                Json materialJson;
+                materialJson["name"] = material.first;
+                materialJson["path"] = _resources->getMaterialsPaths()[material.first];
+                json["materials"].push_back(materialJson);
+            }
+
+            for (auto& texture : _resources->getTexturesMap()) {
+                Json textureJson;
+                textureJson["name"] = texture.first;
+                textureJson["path"] = _resources->getTexturesPaths()[texture.first];
+                json["textures"].push_back(textureJson);
+            }
+
+            for (auto& obj : _objects) {
+                Json objJson;
+                objJson["name"] = obj.second;
+                objJson["type.id"] = obj.first->get_id();
+                objJson["shader"] = _resources->getShaderName(obj.first->get_shader());
+                objJson["material"] = _resources->getMaterialName(obj.first->get_material());
+                objJson["texture"] = _resources->getTextureName(obj.first->get_texture());
+                objJson["uv.x"] = obj.first->get_uv().x;
+                objJson["uv.y"] = obj.first->get_uv().y;
+                objJson["transform"] = {
+                    {"position", {
+                        {"x", obj.first->get_position().x},
+                        {"y", obj.first->get_position().y},
+                        {"z", obj.first->get_position().z}
+                    }},
+                    {"rotation", {
+                        {"x", obj.first->get_rotation().x},
+                        {"y", obj.first->get_rotation().y},
+                        {"z", obj.first->get_rotation().z}
+                    }},
+                    {"scale", {
+                        {"x", obj.first->get_size().x},
+                        {"y", obj.first->get_size().y},
+                        {"z", obj.first->get_size().z}
+                    }}
+                };
+                objJson["other"] = {};
+
+                json["objects"].push_back(objJson);
+            }
+
+            for (auto& light : _lights) {
+                Json lightJson;
+                lightJson["name"] = light.second;
+                lightJson["type.id"] = light.first->get_id();
+                lightJson["shader"] = _resources->getShaderName(light.first->get_shader());
+                lightJson["material"] = _resources->getMaterialName(light.first->get_material());
+                lightJson["texture"] = _resources->getTextureName(light.first->get_texture());
+                lightJson["uv.x"] = light.first->get_uv().x,
+                lightJson["uv.y"] = light.first->get_uv().y,
+                lightJson["transform"] = {
+                    {"position", {
+                        {"x", light.first->get_position().x},
+                        {"y", light.first->get_position().y},
+                        {"z", light.first->get_position().z}
+                    }},
+                    {"rotation", {
+                        {"x", light.first->get_rotation().x},
+                        {"y", light.first->get_rotation().y},
+                        {"z", light.first->get_rotation().z}
+                    }},
+                    {"scale", {
+                        {"x", light.first->get_size().x},
+                        {"y", light.first->get_size().y},
+                        {"z", light.first->get_size().z}
+                    }}
+                };
+                lightJson["other"]["Light"] = {
+                    {"color", {
+                        {"r", light.first->get_light_color().r},
+                        {"g", light.first->get_light_color().g},
+                        {"b", light.first->get_light_color().b}
+                    }}
+                };
+
+                json["objects"].push_back(lightJson);
+            }
+
+            std::fstream file;
+            file.open(path, std::ios::out);
+            if (file.is_open()) {
+                file << json << std::endl;
+            } else {
+                std::cerr << "Failed to open file " << path << std::endl;
+            }
+            return json;
+        }
+        
         void add_object(const Novo::Mesh::MeshBase& obj) {
             _objects.push_back(ObjPair(std::make_shared<Novo::Mesh::MeshBase>(obj), "Scene object #" + std::to_string(_objects.size())));
         }
@@ -104,6 +217,11 @@ namespace Novo {
             }
         }
 
+        void clear() {
+            _objects.clear();
+            _lights.clear();
+        }
+
         void draw_ui() {
             ImGui::Begin(_name.c_str());
             ImGui::Text("Objects");
@@ -125,6 +243,9 @@ namespace Novo {
             static bool isAddingMaterial = false;
             static bool isAddingShader = false;
 
+            static bool isSaving = false;
+            static bool isOpening = false;
+
             if (ImGui::Button("Add object...")) {
                 isAddingObject = true;
             }
@@ -136,6 +257,14 @@ namespace Novo {
             }
             if (ImGui::Button("Add shader...")) {
                 isAddingShader = true;
+            }
+            ImGui::Separator();
+            if (ImGui::Button("Save")) {
+                isSaving = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Open")) {
+                isOpening = true;
             }
 
             if (isAddingObject) {
@@ -311,6 +440,57 @@ namespace Novo {
                 ImGui::End();
             }
 
+            if (isSaving) {
+                ImGui::Begin("Save", &isSaving);
+                ImGui::SetWindowFontScale(1.5f);
+                static std::string path = "";
+                static std::vector<char> buffer(256);
+
+                if (path.size() >= buffer.size()) {
+                    buffer.resize(path.size() + 1);
+                }
+                memcpy(buffer.data(), path.c_str(), path.size() + 1);
+
+                if (ImGui::InputText("File Path", buffer.data(), buffer.size())) {
+                    path.assign(buffer.data());
+                }
+                ImGui::Text("Scene file will be saved as:\n%s", (_resources->getExePath() + path).c_str());
+                if (ImGui::Button("Save")) {
+                    save_to_json(_resources->getExePath() + path);
+                    isSaving = false;
+                }
+                if (ImGui::Button("Cancel")) {
+                    isSaving = false;
+                }
+                ImGui::End();
+            }
+            if (isOpening) {
+                if (ImGui::Begin("Open", &isOpening)) {
+                    ImGui::SetWindowFontScale(1.5f);
+                    static std::string path = "";
+                    static std::vector<char> buffer(256);
+
+                    if (path.size() >= buffer.size()) {
+                        buffer.resize(path.size() + 1);
+                    }
+                    memcpy(buffer.data(), path.c_str(), path.size() + 1);
+
+                    if (ImGui::InputText("File Path", buffer.data(), buffer.size())) {
+                        path.assign(buffer.data());
+                    }
+                    if (ImGui::Button("Open")) {
+                        clear();
+                        load_from_json(path);
+                        reload_all();
+                        isOpening = false;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Cancel")) {
+                        isOpening = false;
+                    }
+                    ImGui::End();
+                }
+            }
             ImGui::End();
         }
 

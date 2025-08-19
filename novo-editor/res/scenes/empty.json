@@ -1,0 +1,36 @@
+{
+    "name": "empty scene",
+    "shaders": [
+        {
+            "name": "ObjShader",
+            "vs": "res/shaders/object.vert",
+            "fs": "res/shaders/object.frag"
+        },
+        {
+            "name": "LightSource",
+            "vs": "res/shaders/light_source.vert",
+            "fs": "res/shaders/light_source.frag"
+        }
+    ],
+    "materials": [
+        {
+            "name": "BoxMaterial",
+            "path": "res/materials/box_material.json"
+        }
+    ],
+    "textures": [
+        {
+            "name": "Box",
+            "path": "res/textures/box_texture.png"
+        },
+        {
+            "name": "Grass",
+            "path": "res/textures/grass.png"
+        },
+        {
+            "name": "TestTexture",
+            "path": "res/textures/texture.png"
+        }
+    ],
+    "objects": []
+}

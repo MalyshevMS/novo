@@ -39,6 +39,7 @@
             "shader": "ObjShader",
             "material": "BoxMaterial",
             "texture": "Box",
+            "uv.x": 1, "uv.y": 1,
             "transform": {
                 "position": {
                     "x": 0,
@@ -64,6 +65,7 @@
             "shader": "ObjShader",
             "material": "BoxMaterial",
             "texture": "Grass",
+            "uv.x": 2, "uv.y": 1,
             "transform": {
                 "position": {
                     "x": 0,
@@ -87,6 +89,7 @@
             "name": "Light 1",
             "type.id": 3,
             "shader": "LightSource",
+            "uv.x": 1, "uv.y": 1,
             "transform": {
                 "position": {
                     "x": 0,

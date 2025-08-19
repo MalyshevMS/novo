@@ -23,8 +23,6 @@ namespace Novo {
             Novo::VBO* _vbo = nullptr;
             Novo::IBO* _ibo = nullptr;
 
-            static constexpr Novo::MeshID _id = Novo::MeshID::MeshBase;
-
             std::shared_ptr<Novo::Shader> _shader = nullptr;
             std::shared_ptr<Novo::Texture2D> _texture = nullptr;
             std::shared_ptr<Material> _material = nullptr;
@@ -94,9 +92,12 @@ namespace Novo {
             virtual glm::vec3 get_position() { return _position; }
             virtual glm::vec3 get_size() { return _size; }
             virtual glm::vec3 get_rotation() { return _rotation; }
-            static Novo::MeshID get_id() { return _id; }
+            virtual glm::vec2 get_uv() { return _uv; }
+            virtual const Novo::MeshID get_id() const { return MeshID::MeshBase; }
 
             virtual std::shared_ptr<Shader> get_shader() { return _shader; }
+            virtual std::shared_ptr<Texture2D> get_texture() { return _texture; }
+            virtual std::shared_ptr<Material> get_material() { return _material; }
 
             virtual void set_material(const Material& material) {
                 *_material = material;
