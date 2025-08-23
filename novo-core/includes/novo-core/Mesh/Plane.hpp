@@ -65,12 +65,10 @@ namespace Novo {
             }
 
             virtual void draw_ui(const std::string& tab_name) override {
-                if (!ImGui::TreeNode(tab_name.c_str())) return;
                 MeshBase::draw_ui(tab_name);
                 if (ImGui::Checkbox("One side", &_one_side)) {
                     change_side_mode();
                 }
-                ImGui::TreePop();
             }
 
             virtual const Novo::MeshID get_id() const { return MeshID::Plane; }

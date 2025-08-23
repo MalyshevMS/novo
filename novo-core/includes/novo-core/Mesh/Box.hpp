@@ -97,12 +97,10 @@ namespace Novo {
             }
 
             virtual void draw_ui(const std::string& tab_name) override {
-                if (!ImGui::TreeNode(tab_name.c_str())) return;
                 MeshBase::draw_ui(tab_name);
                 if (ImGui::Button("Inverse")) {
                     inverse();
                 }
-                ImGui::TreePop();
             }
         };
     }

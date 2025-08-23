@@ -11,10 +11,11 @@ namespace Novo {
     private:
         using ObjPair = std::pair<std::shared_ptr<Novo::Mesh::MeshBase>, std::string>;
         using LightPair = std::pair<std::shared_ptr<Novo::Mesh::LightSource>, std::string>;
-        std::vector<ObjPair> _objects = {};
-        std::vector<LightPair> _lights = {};
+        std::map<int, ObjPair> _objects  = {}; // first - id, second - ObjPair
+        std::map<int, LightPair> _lights = {}; // first - id, second - LightPair
         std::shared_ptr<Novo::Resources> _resources;
         std::string _name = "Scene";
+        int _lastID = 0;
     public:
         Scene(std::shared_ptr<Novo::Resources> resources) {
             _resources = resources;
@@ -103,28 +104,28 @@ namespace Novo {
 
             for (auto& obj : _objects) {
                 Json objJson;
-                objJson["name"] = obj.second;
-                objJson["type.id"] = obj.first->get_id();
-                objJson["shader"] = _resources->getShaderName(obj.first->get_shader());
-                objJson["material"] = _resources->getMaterialName(obj.first->get_material());
-                objJson["texture"] = _resources->getTextureName(obj.first->get_texture());
-                objJson["uv.x"] = obj.first->get_uv().x;
-                objJson["uv.y"] = obj.first->get_uv().y;
+                objJson["name"] = obj.second.second;
+                objJson["type.id"] = obj.second.first->get_id();
+                objJson["shader"] = _resources->getShaderName(obj.second.first->get_shader());
+                objJson["material"] = _resources->getMaterialName(obj.second.first->get_material());
+                objJson["texture"] = _resources->getTextureName(obj.second.first->get_texture());
+                objJson["uv.x"] = obj.second.first->get_uv().x;
+                objJson["uv.y"] = obj.second.first->get_uv().y;
                 objJson["transform"] = {
                     {"position", {
-                        {"x", obj.first->get_position().x},
-                        {"y", obj.first->get_position().y},
-                        {"z", obj.first->get_position().z}
+                        {"x", obj.second.first->get_position().x},
+                        {"y", obj.second.first->get_position().y},
+                        {"z", obj.second.first->get_position().z}
                     }},
                     {"rotation", {
-                        {"x", obj.first->get_rotation().x},
-                        {"y", obj.first->get_rotation().y},
-                        {"z", obj.first->get_rotation().z}
+                        {"x", obj.second.first->get_rotation().x},
+                        {"y", obj.second.first->get_rotation().y},
+                        {"z", obj.second.first->get_rotation().z}
                     }},
                     {"scale", {
-                        {"x", obj.first->get_size().x},
-                        {"y", obj.first->get_size().y},
-                        {"z", obj.first->get_size().z}
+                        {"x", obj.second.first->get_size().x},
+                        {"y", obj.second.first->get_size().y},
+                        {"z", obj.second.first->get_size().z}
                     }}
                 };
                 objJson["other"] = {};
@@ -134,35 +135,35 @@ namespace Novo {
 
             for (auto& light : _lights) {
                 Json lightJson;
-                lightJson["name"] = light.second;
-                lightJson["type.id"] = light.first->get_id();
-                lightJson["shader"] = _resources->getShaderName(light.first->get_shader());
-                lightJson["material"] = _resources->getMaterialName(light.first->get_material());
-                lightJson["texture"] = _resources->getTextureName(light.first->get_texture());
-                lightJson["uv.x"] = light.first->get_uv().x,
-                lightJson["uv.y"] = light.first->get_uv().y,
+                lightJson["name"] = light.second.second;
+                lightJson["type.id"] = light.second.first->get_id();
+                lightJson["shader"] = _resources->getShaderName(light.second.first->get_shader());
+                lightJson["material"] = _resources->getMaterialName(light.second.first->get_material());
+                lightJson["texture"] = _resources->getTextureName(light.second.first->get_texture());
+                lightJson["uv.x"] = light.second.first->get_uv().x,
+                lightJson["uv.y"] = light.second.first->get_uv().y,
                 lightJson["transform"] = {
                     {"position", {
-                        {"x", light.first->get_position().x},
-                        {"y", light.first->get_position().y},
-                        {"z", light.first->get_position().z}
+                        {"x", light.second.first->get_position().x},
+                        {"y", light.second.first->get_position().y},
+                        {"z", light.second.first->get_position().z}
                     }},
                     {"rotation", {
-                        {"x", light.first->get_rotation().x},
-                        {"y", light.first->get_rotation().y},
-                        {"z", light.first->get_rotation().z}
+                        {"x", light.second.first->get_rotation().x},
+                        {"y", light.second.first->get_rotation().y},
+                        {"z", light.second.first->get_rotation().z}
                     }},
                     {"scale", {
-                        {"x", light.first->get_size().x},
-                        {"y", light.first->get_size().y},
-                        {"z", light.first->get_size().z}
+                        {"x", light.second.first->get_size().x},
+                        {"y", light.second.first->get_size().y},
+                        {"z", light.second.first->get_size().z}
                     }}
                 };
                 lightJson["other"]["Light"] = {
                     {"color", {
-                        {"r", light.first->get_light_color().r},
-                        {"g", light.first->get_light_color().g},
-                        {"b", light.first->get_light_color().b}
+                        {"r", light.second.first->get_light_color().r},
+                        {"g", light.second.first->get_light_color().g},
+                        {"b", light.second.first->get_light_color().b}
                     }}
                 };
 
@@ -180,40 +181,48 @@ namespace Novo {
         }
         
         void add_object(const Novo::Mesh::MeshBase& obj) {
-            _objects.push_back(ObjPair(std::make_shared<Novo::Mesh::MeshBase>(obj), "Scene object #" + std::to_string(_objects.size())));
+            _objects[_lastID] = ObjPair(std::make_shared<Novo::Mesh::MeshBase>(obj), "Scene object #" + std::to_string(_lastID));
+            ++_lastID;
         }
 
         void add_object(const std::shared_ptr<Novo::Mesh::MeshBase>& obj) {
-            _objects.push_back(ObjPair(obj, "Scene object #" + std::to_string(_objects.size())));
+            _objects[_lastID] = ObjPair(obj, "Scene object #" + std::to_string(_lastID));
+            ++_lastID;
         }
 
         void add_object(const Novo::Mesh::MeshBase& obj, const std::string& name) {
-            _objects.push_back(ObjPair(std::make_shared<Novo::Mesh::MeshBase>(obj), name));
+            _objects[_lastID] = ObjPair(std::make_shared<Novo::Mesh::MeshBase>(obj), name);
+            ++_lastID;
         }
 
         void add_object(const std::shared_ptr<Novo::Mesh::MeshBase>& obj, const std::string& name) {
-            _objects.push_back(ObjPair(obj, name));
+            _objects[_lastID] = ObjPair(obj, name);
+            ++_lastID;
         }
 
         void add_light(const Novo::Mesh::LightSource& light) {
-            _lights.push_back(LightPair(std::make_shared<Novo::Mesh::LightSource>(light), "Light #" + std::to_string(_lights.size())));
+            _lights[_lastID] = LightPair(std::make_shared<Novo::Mesh::LightSource>(light), "Light #" + std::to_string(_lastID));
+            ++_lastID;
         }
 
         void add_light(const std::shared_ptr<Novo::Mesh::LightSource>& light) {
-            _lights.push_back(LightPair(light, "Light #" + std::to_string(_lights.size())));
+            _lights[_lastID] = LightPair(light, "Light #" + std::to_string(_lastID));
+            ++_lastID;
         }
 
         void add_light(const Novo::Mesh::LightSource& light, const std::string& name) {
-            _lights.push_back(LightPair(std::make_shared<Novo::Mesh::LightSource>(light), name));
+            _lights[_lastID] = LightPair(std::make_shared<Novo::Mesh::LightSource>(light), name);
+            ++_lastID;
         }
 
         void add_light(const std::shared_ptr<Novo::Mesh::LightSource>& light, const std::string& name) {
-            _lights.push_back(LightPair(light, name));
+            _lights[_lastID] = LightPair(light, name);
+            ++_lastID;
         }
 
         void reload_all() {
             for (auto& obj : _objects) {
-                obj.first->reload();
+                obj.second.first->reload();
             }
         }
 
@@ -224,17 +233,53 @@ namespace Novo {
 
         void draw_ui() {
             ImGui::Begin(_name.c_str());
-            ImGui::Text("Objects");
-            ImGui::Separator();
             ImGui::SetWindowFontScale(1.5f);
-            for (auto& obj : _objects) {
-                obj.first->draw_ui(obj.second);
+            static int selected_object = INT_MAX;
+            static std::string selected_object_str = "None [id: " + std::to_string(selected_object) + "]";
+            if (ImGui::BeginCombo("Selected object", selected_object_str.c_str())) {
+                if (ImGui::Selectable(("None [id: " + std::to_string(INT_MAX) + "]").c_str())) {
+                    selected_object = INT_MAX;
+                    selected_object_str = "None [id: " + std::to_string(selected_object) + "]";
+                }
+                for (auto& obj : _objects) {
+                    if (ImGui::Selectable((obj.second.second + " [id: " + std::to_string(obj.first) + "]").c_str())) {
+                        selected_object = obj.first;
+                        selected_object_str = obj.second.second + " [id: " + std::to_string(selected_object) + "]";
+                    }
+                }
+                for (auto& light : _lights) {
+                    if (ImGui::Selectable((light.second.second + " [id: " + std::to_string(light.first) + "]").c_str())) {
+                        selected_object = light.first;
+                        selected_object_str = light.second.second + " [id: " + std::to_string(selected_object) + "]";
+                    }
+                }
+                ImGui::EndCombo();
             }
-            ImGui::Separator();
-            ImGui::Text("Lights");
-            ImGui::Separator();
-            for (auto& light : _lights) {
-                light.first->draw_ui(light.second);
+            for (auto& obj : _objects) if (obj.first == selected_object) {
+                static std::vector<char> buffer(256);
+                if (obj.second.second.size() >= buffer.size()) {
+                    buffer.resize(obj.second.second.size() + 1);
+                }
+                memcpy(buffer.data(), obj.second.second.c_str(), obj.second.second.size() + 1);
+
+                if (ImGui::InputText("Name", buffer.data(), buffer.size())) {
+                    obj.second.second.assign(buffer.data());
+                    selected_object_str = obj.second.second + " [id: " + std::to_string(selected_object) + "]";
+                }
+                obj.second.first->draw_ui(obj.second.second);
+            }
+            for (auto& light : _lights) if (light.first == selected_object) {
+                static std::vector<char> buffer(256);
+                if (light.second.second.size() >= buffer.size()) {
+                    buffer.resize(light.second.second.size() + 1);
+                }
+                memcpy(buffer.data(), light.second.second.c_str(), light.second.second.size() + 1);
+
+                if (ImGui::InputText("Name", buffer.data(), buffer.size())) {
+                    light.second.second.assign(buffer.data());
+                    selected_object_str = light.second.second + " [id: " + std::to_string(selected_object) + "]";
+                }
+                light.second.first->draw_ui(light.second.second);
             }
             ImGui::Separator();
 
@@ -496,20 +541,20 @@ namespace Novo {
 
         void render() {
             for (auto& obj : _objects) {
-                for (int i = 0; i < _lights.size(); ++i) {
-                    if (!_lights[i].first->is_visible()) {
-                        obj.first->get_shader()->load();
-                        obj.first->get_shader()->insertUniformArray("light_colors", glm::vec3(0.f), i);
-                        obj.first->get_shader()->unload();
+                for (auto& light : _lights) {
+                    if (!light.second.first->is_active()) {
+                        obj.second.first->get_shader()->load();
+                        obj.second.first->get_shader()->insertUniformArray("light_colors", glm::vec3(0.f), light.first);
+                        obj.second.first->get_shader()->unload();
                         continue;
                     }
-                    _lights[i].first->draw();
-                    obj.first->get_shader()->load();
-                    obj.first->get_shader()->insertUniformArray("light_colors", _lights[i].first->get_light_color(), i);
-                    obj.first->get_shader()->insertUniformArray("light_positions", _lights[i].first->get_position(), i);
-                    obj.first->get_shader()->unload();
+                    light.second.first->draw();
+                    obj.second.first->get_shader()->load();
+                    obj.second.first->get_shader()->insertUniformArray("light_colors", light.second.first->get_light_color(), light.first);
+                    obj.second.first->get_shader()->insertUniformArray("light_positions", light.second.first->get_position(), light.first);
+                    obj.second.first->get_shader()->unload();
                 }
-                obj.first->draw();
+                obj.second.first->draw();
             }
         }
     };
