@@ -41,6 +41,45 @@
     -1, -1, -1,     0.0,-1.0, 0.0,          -_uv.x,  0.f,   \
 }
 
+#define VERTIECES_INVERTED_NORMAL_UV { \
+/*  X   Y   Z            NORMAL                  U   V*/    \
+    /* Front */                                             \
+    -1, 1,  -1,      0.0, 0.0, 1.0,         _uv.x,   _uv.y, \
+    -1, -1, -1,      0.0, 0.0, 1.0,         _uv.x,   0.f,   \
+    1, -1,  -1,      0.0, 0.0, 1.0,         0.f,     0.f,   \
+    1,  1,  -1,      0.0, 0.0, 1.0,         0.f,     _uv.y, \
+\
+    /* Back */                       \
+    -1, 1,  1,       0.0, 0.0,-1.0,         -_uv.x,  _uv.y, \
+    1,  1,  1,       0.0, 0.0,-1.0,         0.f,     _uv.y, \
+    1, -1,  1,       0.0, 0.0,-1.0,         0.f,     0.f,   \
+    -1, -1, 1,       0.0, 0.0,-1.0,         -_uv.x,  0.f,   \
+\
+    /* Left */                       \
+    -1,  1, -1,      1.0, 0.0, 0.0,         -_uv.x,  _uv.y, \
+    -1,  1,  1,      1.0, 0.0, 0.0,         0.f,     _uv.y, \
+    -1, -1,  1,      1.0, 0.0, 0.0,         0.f,     0.f,   \
+    -1, -1, -1,      1.0, 0.0, 0.0,         -_uv.x,  0.f,   \
+\
+    /* Right */                      \
+    1, -1, -1,     -1.0, 0.0, 0.0,          _uv.x,   0.f,   \
+    1, -1, 1,      -1.0, 0.0, 0.0,          0.f,     0.f,   \
+    1, 1,  1,      -1.0, 0.0, 0.0,          0.f,     _uv.y, \
+    1, 1, -1,      -1.0, 0.0, 0.0,          _uv.x,   _uv.y, \
+\
+    /* Up */                         \
+    -1, 1, -1,      0.0,-1.0, 0.0,          _uv.x,   0.f,   \
+    1, 1, -1,       0.0,-1.0, 0.0,          0.f,     0.f,   \
+    1,  1, 1,       0.0,-1.0, 0.0,          0.f,     _uv.y, \
+    -1, 1, 1,       0.0,-1.0, 0.0,          _uv.x,   _uv.y, \
+\
+    /* Down */                       \
+    -1, -1, 1,      0.0, 1.0, 0.0,          -_uv.x,  _uv.y, \
+    1, -1, 1,       0.0, 1.0, 0.0,          0.f,     _uv.y, \
+    1, -1, -1,      0.0, 1.0, 0.0,          0.f,     0.f,   \
+    -1, -1, -1,     0.0, 1.0, 0.0,          -_uv.x,  0.f,   \
+}
+
 namespace Novo {
     namespace Mesh {
         class Box : public MeshBase {
@@ -78,6 +117,17 @@ namespace Novo {
 
             void inverse() {
                 _inverse = !_inverse;
+
+                GLfloat new_box[] = VERTIECES_INVERTED_NORMAL_UV;
+
+                delete _vbo;
+                delete _vao;
+
+                _vbo = new Novo::VBO(new_box, sizeof(new_box), Novo::Layout::l_texture);
+                _vao = new Novo::VAO();
+                
+                _vao->addVBO(*_vbo);
+                _vao->setIBO(*_ibo);
             }
 
             virtual const Novo::MeshID get_id() const { return MeshID::Box; }

@@ -286,6 +286,7 @@ namespace Novo {
             static bool isAddingObject = false;
             static bool isAddingLight = false;
             static bool isAddingMaterial = false;
+            static bool isAddingTexture = false;
             static bool isAddingShader = false;
 
             static bool isSaving = false;
@@ -299,6 +300,9 @@ namespace Novo {
             }
             if (ImGui::Button("Add material...")) {
                 isAddingMaterial = true;
+            }
+            if (ImGui::Button("Add texture...")) {
+                isAddingTexture = true;
             }
             if (ImGui::Button("Add shader...")) {
                 isAddingShader = true;
@@ -373,6 +377,7 @@ namespace Novo {
                     reload_all();
                     isAddingObject = false;
                 }
+                ImGui::SameLine();
                 if (ImGui::Button("Cancel")) {
                     isAddingObject = false;
                 }
@@ -407,6 +412,7 @@ namespace Novo {
                     add_light(std::make_shared<Novo::Mesh::LightSource>(color, _resources->getShader(shader)), name);
                     isAddingLight = false;
                 }
+                ImGui::SameLine();
                 if (ImGui::Button("Cancel")) {
                     isAddingLight = false;
                 }
@@ -435,10 +441,43 @@ namespace Novo {
                     _resources->addMaterial(name, material);
                     isAddingMaterial = false;
                 }
+                ImGui::SameLine();
                 if (ImGui::Button("Cancel")) {
                     isAddingMaterial = false;
                 }
 
+                ImGui::End();
+            }
+            if (isAddingTexture) {
+                static std::string name = "";
+                static std::string path = "";
+                static std::vector<char> buffer_name(256);
+                static std::vector<char> buffer_path(256);
+                if (name.size() >= buffer_name.size()) {
+                    buffer_name.resize(name.size() + 1);
+                }
+                memcpy(buffer_name.data(), name.c_str(), name.size() + 1);
+                if (path.size() >= buffer_path.size()) {
+                    buffer_path.resize(path.size() + 1);
+                }
+                memcpy(buffer_path.data(), path.c_str(), path.size() + 1);
+
+                ImGui::Begin("Add texture", &isAddingTexture);
+                ImGui::SetWindowFontScale(1.5f);
+                if (ImGui::InputText("Name", buffer_name.data(), buffer_name.size())) {
+                    name.assign(buffer_name.data());
+                }
+                if (ImGui::InputText("Path", buffer_path.data(), buffer_path.size())) {
+                    path.assign(buffer_path.data());
+                }
+                if (ImGui::Button("Add")) {
+                    _resources->loadTexture(name, path);
+                    isAddingTexture = false;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel")) {
+                    isAddingTexture = false;
+                }
                 ImGui::End();
             }
             if (isAddingShader) {
@@ -479,6 +518,7 @@ namespace Novo {
                     _resources->loadShader(name, vertex_path, fragment_path);
                     isAddingShader = false;
                 }
+                ImGui::SameLine();
                 if (ImGui::Button("Cancel")) {
                     isAddingShader = false;
                 }
@@ -504,6 +544,7 @@ namespace Novo {
                     save_to_json(_resources->getExePath() + path);
                     isSaving = false;
                 }
+                ImGui::SameLine();
                 if (ImGui::Button("Cancel")) {
                     isSaving = false;
                 }
